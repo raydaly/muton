@@ -1,0 +1,91 @@
+<!DOCTYPE html> 
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Muton for CouchDB</title>
+	<meta name="viewport" content="user-scalable=no, width=device-width" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a4.1/jquery.mobile-1.0a4.1.min.css" />
+	<script src="http://code.jquery.com/jquery-1.5.2.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.0a4.1/jquery.mobile-1.0a4.1.min.js"></script>	
+	<style>
+	</style>
+</head>
+<body>
+	<div data-role="page" id="startPg">
+		<div data-role="header">
+			<h1>Muton for CouchDB</h1>
+			<a href="#aboutPg" class="ui-btn-right" data-icon="info">About</a>
+		</div>
+		<div data-role="content">
+			<p>This page will be about login in</p>
+			<a id="startPgBut" href="#dbListPg" data-role="button">Next</a>
+		</div>
+	</div><!-- /startPg -->
+	
+
+	<div data-role="page" id="aboutPg">
+		<div data-role="header">
+			<h1>About Muton</h1>
+		</div>
+		<div class="branding">Muton For CouchDB</div>
+		<div data-role="content">
+			<p>Muton is an administration console for CouchDB meant for mobile devices.</p> 
+			<p>Support for various mobile devices and most modern web browsers is possible using the jQuery Mobile library. See their <a href="http://jquerymobile.com/gbs/">page on device support</a>.</p>
+			<p>Project is maintained on GitHub (future).</p>
+		</div>
+	</div><!-- /about -->
+
+	<div data-role="page" id="dbListPg">
+		<div data-role="header">
+			<h1>database list</h1>
+			<a href="#dbAdvancePg" class="ui-btn-right" data-icon="info">Advanced</a>
+		</div>
+		<div data-role="content">
+			<ul data-role="listview" data-theme="g" data-filter="true">
+				<li><a href="#docListPg">db1</a><span class="ui-li-count">47</span></li>
+			</ul>
+		</div>
+		<fieldset class="ui-grid-a">
+			<div class="ui-block-a"><a href="#" data-role="button" data-icon="arrow-l">Previous</a></div>
+			<div class="ui-block-b"><a href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
+		</fieldset>
+	</div><!-- /dbListPg -->
+
+	<div data-role="page" id="docListPg">
+		<div data-role="header">
+			<h1>document list</h1>
+			<a href="#dbListAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
+		</div>
+		<div data-role="content">
+			<ul data-role="listview" data-theme="g" data-filter="true">
+				<li><a href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
+			</ul>
+		</div>
+		<fieldset class="ui-grid-a">
+			<div class="ui-block-a"><a href="#" data-role="button" data-icon="arrow-l">Previous</a></div>
+			<div class="ui-block-b"><a href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
+		</fieldset>
+	</div><!-- /docListPg -->
+
+	<div data-role="page" id="docPg">
+		<div data-role="header">
+			<h1>document list</h1>
+			<a href="#docAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
+		</div>
+		<div data-role="content">
+			<ul data-role="listview" data-theme="g" data-filter="true">
+				<li><a href="#docPg">key here
+					<p class="ui-li-desc">value here</p>
+				</a></li>
+			</ul>
+		</div>
+	</div><!-- /docListPg -->
+
+
+
+	<script>
+	
+	</script>
+
+</body></html>
