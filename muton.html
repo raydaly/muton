@@ -9,6 +9,7 @@
 	<script src="http://code.jquery.com/jquery-1.5.2.min.js"></script>
 	<script src="http://code.jquery.com/mobile/1.0a4.1/jquery.mobile-1.0a4.1.min.js"></script>	
 	<style>
+	
 	</style>
 </head>
 <body>
@@ -42,7 +43,7 @@
 			<a href="#dbAdvancePg" class="ui-btn-right" data-icon="info">Advanced</a>
 		</div>
 		<div data-role="content">
-			<ul data-role="listview" data-theme="g" data-filter="true">
+			<ul id="dbListUL" data-role="listview" data-theme="g" data-filter="true">
 				<li><a href="#docListPg">db1</a><span class="ui-li-count">47</span></li>
 			</ul>
 		</div>
@@ -58,7 +59,7 @@
 			<a href="#dbListAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
 		</div>
 		<div data-role="content">
-			<ul data-role="listview" data-theme="g" data-filter="true">
+			<ul id="docsListUL" data-role="listview" data-theme="g" data-filter="true">
 				<li><a href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
 			</ul>
 		</div>
@@ -84,8 +85,53 @@
 
 
 
-	<script>
-	
-	</script>
+<script>
+$(document).ready(function() {
+   muton.populateDbList();
+   muton.populateDocsList("books");
+ });
+
+var muton={
+	populateDbList : function(){
+		//get all databases in this instance of couchdb, populate list, refresh list
+		//alert("@populateDbList");
+		$.getJSON('/_all_dbs', function(data) {
+			//alert('Got json of all databases='+data);
+			var x="";
+			for (var i=0; i<data.length;i++){
+				//<li><a id="db_name" href="#docListPg">doc id here</a><span class="ui-li-count">47</span></li>
+				x=x+'<li><a id="db_'+data[i]+'" href="#docListPg">'+data[i]+'</a></li>';
+			}
+			$("#dbListUL").html(x).listview('refresh');
+		});
+	},
+	populateDocsList : function(db){
+		//get all documents for a database in this instance of couchdb, populate list, refresh list
+		//alert("@populateDocsList");
+		var url="/"+db+"/_all_docs/"
+		$.getJSON(url, function(data) {
+			//alert('Got json of all databases='+data);
+			var total_rows=data.total_rows;
+			var offset=data.offset;
+			var rows=data.rows;
+			var x="";
+			for (var i=0; i<rows.length;i++){
+				//<li><a id="db_name" href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
+				x=x+'<li><a id="doc_'+rows[i].id+'" href="#docPg">'+rows[i].id+'</a></li>';
+			}
+			test=x; //global for testing
+			$("#docsListUL").html(x).listview('refresh');
+			/*
+			{"total_rows":256,"offset":0,"rows":[
+			{"id":"1","key":"1","value":{"rev":"14-b6b36469b4e1deb02cae3e358b6d3348"}},
+			{"id":"10","key":"10","value":{"rev":"29-3eb82d0e82c7b4a47b0d8c328520ac99"}},
+			{"id":"100","key":"100","value":{"rev":"1-70cd178b4fe31b9dbc67e0f217719781"}},
+			*/
+		});
+	}
+}
+
+
+</script>
 
 </body></html>
