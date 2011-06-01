@@ -81,34 +81,50 @@
 				</a></li>
 			</ul>
 		</div>
-	</div><!-- /docListPg -->
+	</div><!-- /docPg -->
 
 
 
 <script>
 $(document).ready(function() {
+   $(".dbListA").live("click", function(){
+		//alert('clicked anchor id='+this.id)
+		muton.populateDocsList(this.id.substring(3));
+		$.mobile.changePage ($("#docListPg"));
+	});
    muton.populateDbList();
-   muton.populateDocsList("books");
+   //muton.populateDocsList("books");
  });
 
 var muton={
+	docsLimit: 10, 
+	dbLimit: 2,  // TODO 2 for testing purposes
 	populateDbList : function(){
 		//get all databases in this instance of couchdb, populate list, refresh list
 		//alert("@populateDbList");
-		$.getJSON('/_all_dbs', function(data) {
+		var url='/_all_dbs';
+		$.getJSON(url, function(data) {
 			//alert('Got json of all databases='+data);
 			var x="";
 			for (var i=0; i<data.length;i++){
 				//<li><a id="db_name" href="#docListPg">doc id here</a><span class="ui-li-count">47</span></li>
-				x=x+'<li><a id="db_'+data[i]+'" href="#docListPg">'+data[i]+'</a></li>';
+				
+				x=x+'<li class="dbListA" id="db_'+data[i]+'" ><a href="#">'+data[i]+'</a></li>';
 			}
 			$("#dbListUL").html(x).listview('refresh');
 		});
 	},
+	paginateDbList: function(dbList,startNo){
+		//should probably be a closure
+	},
+	
 	populateDocsList : function(db){
 		//get all documents for a database in this instance of couchdb, populate list, refresh list
-		//alert("@populateDocsList");
-		var url="/"+db+"/_all_docs/"
+		//_all_docs?startkey="doc2"&limit=2   
+			//startkey=?
+			//limit will be 10, 25, 50, 100 - hardcoding 10 to start
+		//alert("@populateDocsList="+db);
+		var url="/"+db+"/_all_docs/?limit="+muton.docsLimit;
 		$.getJSON(url, function(data) {
 			//alert('Got json of all databases='+data);
 			var total_rows=data.total_rows;
@@ -117,10 +133,11 @@ var muton={
 			var x="";
 			for (var i=0; i<rows.length;i++){
 				//<li><a id="db_name" href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
-				x=x+'<li><a id="doc_'+rows[i].id+'" href="#docPg">'+rows[i].id+'</a></li>';
+				x=x+'<li><a id="doc_'+rows[i].id+'" href="#docPg">'+rows[i].id+'<p>'+rows[i].value.rev+'</p></a></li>';
 			}
-			test=x; //global for testing
+			//test=x; //global for testing
 			$("#docsListUL").html(x).listview('refresh');
+			//$.mobile.changePage ($("#docListPg"));
 			/*
 			{"total_rows":256,"offset":0,"rows":[
 			{"id":"1","key":"1","value":{"rev":"14-b6b36469b4e1deb02cae3e358b6d3348"}},
