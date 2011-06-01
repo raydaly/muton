@@ -1,4 +1,22 @@
 <!DOCTYPE html> 
+<!-- 
+	TODO to get first two screens like Futon
+	startPg
+	- x Overview
+	- Configuration
+	- Replicator
+	- Status
+	- Test Suite
+	dbList
+	- add database
+	- next, previous
+	- change number of items on page
+	- number of documents in bubble with one call each to api (make advance option)
+	- showing 1 of x
+	docList
+	- 
+	
+-->
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -9,7 +27,7 @@
 	<script src="http://code.jquery.com/jquery-1.5.2.min.js"></script>
 	<script src="http://code.jquery.com/mobile/1.0a4.1/jquery.mobile-1.0a4.1.min.js"></script>	
 	<style>
-	
+		.xof {text-align: center;}
 	</style>
 </head>
 <body>
@@ -20,7 +38,14 @@
 		</div>
 		<div data-role="content">
 			<p>This page will be about login in</p>
-			<a id="startPgBut" href="#dbListPg" data-role="button">Next</a>
+			<ul data-role="listview" data-theme="g">
+				<li><a href="#dbListPg">Overview</a></li>
+				<li><a href="#">Configuration</a></li>
+				<li><a href="#">Replicator</a></li>
+				<li><a href="#statusPg">Status</a></li>
+				<li><a href="#">Test Suite</a></li>
+			</ul>
+			
 		</div>
 	</div><!-- /startPg -->
 	
@@ -83,6 +108,27 @@
 		</div>
 	</div><!-- /docPg -->
 
+	<div data-role="page" id="statusPg">
+		<div data-role="header">
+			<h1>document list</h1>
+			<a href="#docAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
+		</div>
+		<div data-role="content">
+			<div data-role="fieldcontain">
+				<label for="statusPoll" class="select">Poll interval in seconds: </label>
+				<input type="text" name="statusPoll" id="statusPoll" value=""  />
+			</div>			
+			</p>
+			<ul id="statusListUL" data-role="listview" data-theme="g">
+				<li><h3>data.type</h3>
+					<p>data.task</p>
+					<p class="ui-li-aside">data.pid</p>
+					<p>data.status</p>
+				</li>
+			</ul>
+		</div>
+	</div><!-- /statusPg -->
+
 
 
 <script>
@@ -92,13 +138,37 @@ $(document).ready(function() {
 		muton.populateDocsList(this.id.substring(3));
 		$.mobile.changePage ($("#docListPg"));
 	});
-   muton.populateDbList();
-   //muton.populateDocsList("books");
- });
+    muton.populateDbList();
+    //muton.populateDocsList("books");
+
+	//clear interval and set timeout for status page
+	//muton.statusInterval is interval in seconds
+	$('#statusPg').live('pagebeforeshow',function(event, ui){
+	  muton.populateStatus();
+	  muton.status=setInterval(muton.populateStatus,1000*muton.statusInterval);
+	});
+
+	$('#statusPg').live('pagehide',function(event, ui){
+	  clearInterval(muton.status);
+	});
+
+   $("#statusPoll").live("blur", function(){
+		var x=parseInt($("#statusPoll").val());
+		alert('statusPoll='+x)
+		if (x!=muton.statusInterval && x>0 & x<10000){
+			muton.statusInterval=x;
+			clearInterval(muton.status);
+			muton.status=setInterval(muton.populateStatus,1000*muton.statusInterval);
+		}
+		muton.populateStatus();
+	});
+	
+});
 
 var muton={
 	docsLimit: 10, 
 	dbLimit: 2,  // TODO 2 for testing purposes
+	statusInterval: 5, //default to 5 seconds
 	populateDbList : function(){
 		//get all databases in this instance of couchdb, populate list, refresh list
 		//alert("@populateDbList");
@@ -111,6 +181,7 @@ var muton={
 				
 				x=x+'<li class="dbListA" id="db_'+data[i]+'" ><a href="#">'+data[i]+'</a></li>';
 			}
+			x=x+'<li data-role="list-divider" class="xof">Showing 1-10 of '+data.length+' databases</li>';
 			$("#dbListUL").html(x).listview('refresh');
 		});
 	},
@@ -144,6 +215,20 @@ var muton={
 			{"id":"10","key":"10","value":{"rev":"29-3eb82d0e82c7b4a47b0d8c328520ac99"}},
 			{"id":"100","key":"100","value":{"rev":"1-70cd178b4fe31b9dbc67e0f217719781"}},
 			*/
+		});
+	},
+	populateStatus : function(){
+		var x="";
+		$("#statusPoll").val(muton.statusInterval);
+		var url="/_active_tasks";
+		$.getJSON(url, function(data) {
+			alert('Got json of all active tasks');
+			for (var i=0; i<data.length;i++){
+				x=x+'<li><h3>'+data[i].type+'</h3><p>'+data[i].task;
+				x=x+'</p><p class="ui-li-aside">'+data[i].pid;
+				x=x+'</p><p>'+data[i].status+'</p>';
+			}
+			$("#statusListUL").html(x).listview('refresh');
 		});
 	}
 }
