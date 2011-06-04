@@ -23,11 +23,12 @@
 	<title>Muton for CouchDB</title>
 	<meta name="viewport" content="user-scalable=no, width=device-width" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a4.1/jquery.mobile-1.0a4.1.min.css" />
-	<script src="http://code.jquery.com/jquery-1.5.2.min.js"></script>
-	<script src="http://code.jquery.com/mobile/1.0a4.1/jquery.mobile-1.0a4.1.min.js"></script>	
+	<link href="http://code.jquery.com/mobile/latest/jquery.mobile.min.css" rel="stylesheet" type="text/css" />
+	<script src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
+	<script src="http://code.jquery.com/mobile/latest/jquery.mobile.min.js"></script>
 	<style>
 		.xof {text-align: center;}
+		#statusErrorMsg {color: red;}
 	</style>
 </head>
 <body>
@@ -49,7 +50,6 @@
 		</div>
 	</div><!-- /startPg -->
 	
-
 	<div data-role="page" id="aboutPg">
 		<div data-role="header">
 			<h1>About Muton</h1>
@@ -65,7 +65,7 @@
 	<div data-role="page" id="dbListPg">
 		<div data-role="header">
 			<h1>database list</h1>
-			<a href="#dbAdvancePg" class="ui-btn-right" data-icon="info">Advanced</a>
+			<a href="#createDbPg" class="ui-btn-right" data-icon="plus" data-rel="dialog">Create DB</a>
 		</div>
 		<div data-role="content">
 			<ul id="dbListUL" data-role="listview" data-theme="g" data-filter="true">
@@ -73,8 +73,8 @@
 			</ul>
 		</div>
 		<fieldset class="ui-grid-a">
-			<div class="ui-block-a"><a href="#" data-role="button" data-icon="arrow-l">Previous</a></div>
-			<div class="ui-block-b"><a href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
+			<div class="ui-block-a"><a id="butDbListPrevious" href="#" data-role="button" data-icon="arrow-l">Previous</a></div>
+			<div class="ui-block-b"><a id="butDbListNext" href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
 		</fieldset>
 	</div><!-- /dbListPg -->
 
@@ -89,8 +89,8 @@
 			</ul>
 		</div>
 		<fieldset class="ui-grid-a">
-			<div class="ui-block-a"><a href="#" data-role="button" data-icon="arrow-l">Previous</a></div>
-			<div class="ui-block-b"><a href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
+			<div class="ui-block-a"><a id="butDocListPrevious" href="#" data-role="button" data-icon="arrow-l">Previous</a></div>
+			<div class="ui-block-b"><a id="butDocListNext"  href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
 		</fieldset>
 	</div><!-- /docListPg -->
 
@@ -128,9 +128,24 @@
 			</ul>
 		</div>
 	</div><!-- /statusPg -->
-
-
-
+	
+	<div data-role="page" id="createDbPg">
+		<div data-role="header">
+			<h1>Create New Database</h1>
+			<a href="#docAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
+		</div>
+		<div data-role="content">
+			Please enter the name of the database. Note that only lowercase characters (a-z), digits (0-9), or any of the characters _, $, (, ), +, -, and / are allowed.
+			<div data-role="fieldcontain">
+				<label for="newDbName" class="select">Database name: </label>
+				<input type="text" name="newDbName" id="newDbName" value=""  />
+			</div>
+			<div id="statusErrorMsg"></div>
+		</div>
+		<a id="butCreateDb" href="#" data-role="button" data-icon="check">Create</a>
+		<!--  butCreateDb$('#createDbPg').dialog('close') -->
+	</div><!-- /statusPg -->
+	
 <script>
 $(document).ready(function() {
    $(".dbListA").live("click", function(){
@@ -138,8 +153,35 @@ $(document).ready(function() {
 		muton.populateDocsList(this.id.substring(3));
 		$.mobile.changePage ($("#docListPg"));
 	});
-    muton.populateDbList();
+    muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
     //muton.populateDocsList("books");
+
+	//previous and next for docList
+	$("#butDocListPrevious").live("click", function(){
+		alert('previous docList');
+	});
+
+	$("#butDocListNext").live("click", function(){
+		alert('next docList');
+	});
+
+	//previous and next for dbList
+	$("#butDbListPrevious").live("click", function(){
+		var x=muton.dbStart-muton.dbLimit;
+		if (x>=0) {
+			muton.dbStart=x;
+		}
+		muton.populateDbList();
+	});
+
+	$("#butDbListNext").live("click", function(){
+		//alert('next dbList');
+		var x=muton.dbStart+muton.dbLimit;
+		if (x<muton.dbMax) {
+			muton.dbStart=x;
+		}
+		muton.populateDbList();
+	});
 
 	//clear interval and set timeout for status page
 	//muton.statusInterval is interval in seconds
@@ -163,32 +205,50 @@ $(document).ready(function() {
 		muton.populateStatus();
 	});
 	
+	//action from dialog for creating new database
+	$("#butCreateDb").live("click", function(){
+		//alert('clicked anchor id='+this.id)
+		var errorMsg="";
+		var x=$.trim($("#newDbName").val());
+		if (x.length==0){
+			errorMsg="Please enter a name.";
+		}else{
+			//TODO regex to all only legal names (a-z), digits (0-9), or  _, $, (, ), +, -, and /
+			var url="/"+x+"/";
+			$.ajax({
+				type: 'PUT',
+				url: url,
+				success: function(){
+					$('#createDbPg').dialog('close');
+					//TODO repopulate dblist - maybe sould be on show event????
+				    muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
+				}
+			});
+		}
+		$("#statusErrorMsg").html(errorMsg);	
+	});
 });
 
 var muton={
 	docsLimit: 10, 
-	dbLimit: 2,  // TODO 2 for testing purposes
+	dbLimit: 10,
+	dbStart: 0,
+	dbMax: 0,
 	statusInterval: 5, //default to 5 seconds
 	populateDbList : function(){
-		//get all databases in this instance of couchdb, populate list, refresh list
-		//alert("@populateDbList");
 		var url='/_all_dbs';
 		$.getJSON(url, function(data) {
 			//alert('Got json of all databases='+data);
 			var x="";
-			for (var i=0; i<data.length;i++){
-				//<li><a id="db_name" href="#docListPg">doc id here</a><span class="ui-li-count">47</span></li>
-				
-				x=x+'<li class="dbListA" id="db_'+data[i]+'" ><a href="#">'+data[i]+'</a></li>';
+			muton.dbMax=data.length;
+			var y=data.slice(muton.dbStart,muton.dbStart+muton.dbLimit);
+			for (var i=0; i<y.length;i++){
+				x=x+'<li class="dbListA" id="db_'+y[i]+'" ><a href="#">'+y[i]+'</a></li>';
 			}
-			x=x+'<li data-role="list-divider" class="xof">Showing 1-10 of '+data.length+' databases</li>';
+			x=x+'<li data-role="list-divider" class="xof">Showing '+(muton.dbStart+1)+'-'+(parseInt(muton.dbStart)+i)+' of '+(parseInt(muton.dbMax))+' databases</li>';
 			$("#dbListUL").html(x).listview('refresh');
 		});
 	},
-	paginateDbList: function(dbList,startNo){
-		//should probably be a closure
-	},
-	
 	populateDocsList : function(db){
 		//get all documents for a database in this instance of couchdb, populate list, refresh list
 		//_all_docs?startkey="doc2"&limit=2   
@@ -222,7 +282,7 @@ var muton={
 		$("#statusPoll").val(muton.statusInterval);
 		var url="/_active_tasks";
 		$.getJSON(url, function(data) {
-			alert('Got json of all active tasks');
+			//alert('Got json of all active tasks');
 			for (var i=0; i<data.length;i++){
 				x=x+'<li><h3>'+data[i].type+'</h3><p>'+data[i].task;
 				x=x+'</p><p class="ui-li-aside">'+data[i].pid;
