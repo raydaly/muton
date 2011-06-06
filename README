@@ -1,0 +1,31 @@
+NOTICE: I am a github novice, so help is welcomed.
+
+Intro
+
+Muton is for administrating Couchdb from a mobile device. If your Couchdb in on an Adroid device, the iPhone or a standard server, Muton gives you most of the functions of Futon, the standard Couchdb administrative console, on more convenient mobile, small screen format.
+
+Muton differs from Futon. The Test Suite is not supported. The Configuration support will differ but it is not coded yet. Futon supplies more information on the screen in some cases, but I think Muton provides you with the essential information for any developer or administrator.  
+
+Muton has some addition. Both the database list and the document list page uses the Filter Items feature of jQuery mobile to allow you to quickly filter for what you want. Other additions will be added as more work is done.   
+
+
+Installing
+
+Muton consists of only one file: muton.html. It pulls the jQuery mobile files from CDN. Simply take the muton.html file and add it as an attachment to any document.
+
+(step by step example coming)
+
+
+What's Working and Not
+
+Muton consists of a variety of pages (or screens). Security is the next big task.
+
+Start Page: Working
+Status Page: Working
+Overview/Database List Page: Working except document count
+Document List Page: Needs pagination and advanced features like new, compact, delete, security and jumpto.
+View Page: Not even a placeholder yet
+View Document Page: Only a placeholder
+
+
+

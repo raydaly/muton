@@ -32,7 +32,7 @@
 	</style>
 </head>
 <body>
-	<div data-role="page" id="startPg">
+	<div data-role="page" id="startPg" data-add-back-btn="true">
 		<div data-role="header">
 			<h1>Muton for CouchDB</h1>
 			<a href="#aboutPg" class="ui-btn-right" data-icon="info">About</a>
@@ -50,7 +50,7 @@
 		</div>
 	</div><!-- /startPg -->
 	
-	<div data-role="page" id="aboutPg">
+	<div data-role="page" id="aboutPg" data-add-back-btn="true">
 		<div data-role="header">
 			<h1>About Muton</h1>
 		</div>
@@ -62,7 +62,7 @@
 		</div>
 	</div><!-- /about -->
 
-	<div data-role="page" id="dbListPg">
+	<div data-role="page" id="dbListPg" data-add-back-btn="true">
 		<div data-role="header">
 			<h1>database list</h1>
 			<a href="#createDbPg" class="ui-btn-right" data-icon="plus" data-rel="dialog">Create DB</a>
@@ -78,7 +78,7 @@
 		</fieldset>
 	</div><!-- /dbListPg -->
 
-	<div data-role="page" id="docListPg">
+	<div data-role="page" id="docListPg" data-add-back-btn="true">
 		<div data-role="header">
 			<h1>document list</h1>
 			<a href="#dbListAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
@@ -94,9 +94,9 @@
 		</fieldset>
 	</div><!-- /docListPg -->
 
-	<div data-role="page" id="docPg">
+	<div data-role="page" id="docPg" data-add-back-btn="true">
 		<div data-role="header">
-			<h1>document list</h1>
+			<h1>view document</h1>
 			<a href="#docAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
 		</div>
 		<div data-role="content">
@@ -108,17 +108,15 @@
 		</div>
 	</div><!-- /docPg -->
 
-	<div data-role="page" id="statusPg">
+	<div data-role="page" id="statusPg" data-add-back-btn="true">
 		<div data-role="header">
-			<h1>document list</h1>
-			<a href="#docAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
+			<h1>Status</h1>
 		</div>
 		<div data-role="content">
 			<div data-role="fieldcontain">
-				<label for="statusPoll" class="select">Poll interval in seconds: </label>
-				<input type="text" name="statusPoll" id="statusPoll" value=""  />
-			</div>			
-			</p>
+				<label for="statusPoll">Poll interval in seconds:</label>
+			 	<input type="range" name="statusPoll" id="statusPoll" value="5" min="0" max="30"  />
+			</div>
 			<ul id="statusListUL" data-role="listview" data-theme="g">
 				<li><h3>data.type</h3>
 					<p>data.task</p>
@@ -194,9 +192,9 @@ $(document).ready(function() {
 	  clearInterval(muton.status);
 	});
 
-   $("#statusPoll").live("blur", function(){
+   $("#statusPoll").live("change", function(){
 		var x=parseInt($("#statusPoll").val());
-		alert('statusPoll='+x)
+		//alert('statusPoll='+x)
 		if (x!=muton.statusInterval && x>0 & x<10000){
 			muton.statusInterval=x;
 			clearInterval(muton.status);
@@ -235,7 +233,7 @@ var muton={
 	dbStart: 0,
 	dbMax: 0,
 	statusInterval: 5, //default to 5 seconds
-	populateDbList : function(){
+	populateDbList2 : function(){
 		var url='/_all_dbs';
 		$.getJSON(url, function(data) {
 			//alert('Got json of all databases='+data);
@@ -243,15 +241,47 @@ var muton={
 			muton.dbMax=data.length;
 			var y=data.slice(muton.dbStart,muton.dbStart+muton.dbLimit);
 			for (var i=0; i<y.length;i++){
-				x=x+'<li class="dbListA" id="db_'+y[i]+'" ><a href="#">'+y[i]+'</a></li>';
+				x=x+'<li class="dbListA" id="db_'+y[i]+'" ><a href="#">'+y[i]+'</a>';
+				x=x+'<span class="ui-li-count">47</span></li>';
 			}
 			x=x+'<li data-role="list-divider" class="xof">Showing '+(muton.dbStart+1)+'-'+(parseInt(muton.dbStart)+i)+' of '+(parseInt(muton.dbMax))+' databases</li>';
 			$("#dbListUL").html(x).listview('refresh');
 		});
 	},
+	
+	populateDbList : function(){
+		var url='/_all_dbs';
+		$.getJSON(url, function(data) {
+			//alert('Got json of all databases='+data);
+			var x="";
+			muton.dbMax=data.length;
+			var y=data.slice(muton.dbStart,muton.dbStart+muton.dbLimit);
+			/*
+["_users","books","edues","muton","nbi","nbi20100705","nbi_final","nbi_final2","talk","ztemp1","ztemp2","ztemp3","ztemp41","ztemp42"]
+			*/
+			for (var i=0; i<y.length;i++){
+				x=x+'<li class="dbListA" id="db_'+y[i]+'" ><a href="#">'+y[i]+'</a>';
+				x=x+'<span id="docCount'+i+'" class="ui-li-count"></span></li>';
+			}
+			x=x+'<li data-role="list-divider" class="xof">Showing '+(muton.dbStart+1)+'-'+(parseInt(muton.dbStart)+i)+' of '+(parseInt(muton.dbMax))+' databases</li>';
+			$("#dbListUL").html(x);
+			//get record count for each database
+			//TODO callback function is not getting j
+			for (var j=0; j<y.length;j++){
+				var url='/'+y[j]+'/';
+				$.getJSON(url, function(data) {
+					$("#docCount"+j).html(data.doc_count);
+					var a=j;
+				});
+			}
+			$("#dbListUL").listview('refresh');
+		});
+	},
+	
 	populateDocsList : function(db){
 		//get all documents for a database in this instance of couchdb, populate list, refresh list
-		//_all_docs?startkey="doc2"&limit=2   
+		//_all_docs?startkey="doc2"&limit=2  
+		//http://127.0.0.1:5984/nbi20100705/_all_docs?startkey=%22_design%2F%22&endkey=%22_design0%22&include_docs=true 
 			//startkey=?
 			//limit will be 10, 25, 50, 100 - hardcoding 10 to start
 		//alert("@populateDocsList="+db);
@@ -279,20 +309,25 @@ var muton={
 	},
 	populateStatus : function(){
 		var x="";
-		$("#statusPoll").val(muton.statusInterval);
+		//$("#statusPoll").val(muton.statusInterval);
 		var url="/_active_tasks";
 		$.getJSON(url, function(data) {
 			//alert('Got json of all active tasks');
 			for (var i=0; i<data.length;i++){
 				x=x+'<li><h3>'+data[i].type+'</h3><p>'+data[i].task;
 				x=x+'</p><p class="ui-li-aside">'+data[i].pid;
-				x=x+'</p><p>'+data[i].status+'</p>';
+				x=x+'</p><p>'+data[i].status+'</p></li>';
+			}
+			if (i==0){
+				x="<li>No tasks running</li>";
 			}
 			$("#statusListUL").html(x).listview('refresh');
 		});
 	}
 }
-
+/*
+{"db_name":"nbi_final","doc_count":255,"doc_del_count":13,"update_seq":268,"purge_seq":0,"compact_running":false,"disk_size":14397537,"instance_start_time":"1307067097241345","disk_format_version":5,"committed_update_seq":268}
+*/
 
 </script>
 
