@@ -32,14 +32,14 @@
 	</style>
 </head>
 <body>
-	<div data-role="page" id="startPg" data-add-back-btn="true">
+	<div data-role="page" id="startPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>Muton for CouchDB</h1>
 			<a href="#aboutPg" class="ui-btn-right" data-icon="info">About</a>
 		</div>
 		<div data-role="content">
 			<p>This page will be about login in</p>
-			<ul data-role="listview" data-theme="g">
+			<ul data-role="listview" data-inset="true">
 				<li><a href="#dbListPg">Overview</a></li>
 				<li><a href="#">Configuration</a></li>
 				<li><a href="#">Replicator</a></li>
@@ -50,7 +50,7 @@
 		</div>
 	</div><!-- /startPg -->
 	
-	<div data-role="page" id="aboutPg" data-add-back-btn="true">
+	<div data-role="page" id="aboutPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>About Muton</h1>
 		</div>
@@ -62,13 +62,13 @@
 		</div>
 	</div><!-- /about -->
 
-	<div data-role="page" id="dbListPg" data-add-back-btn="true">
+	<div data-role="page" id="dbListPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>database list</h1>
 			<a href="#createDbPg" class="ui-btn-right" data-icon="plus" data-rel="dialog">Create DB</a>
 		</div>
 		<div data-role="content">
-			<ul id="dbListUL" data-role="listview" data-theme="g" data-filter="true">
+			<ul id="dbListUL" data-role="listview" data-inset="true" data-filter="true">
 				<li><a href="#docListPg">db1</a><span class="ui-li-count">47</span></li>
 			</ul>
 		</div>
@@ -78,13 +78,13 @@
 		</fieldset>
 	</div><!-- /dbListPg -->
 
-	<div data-role="page" id="docListPg" data-add-back-btn="true">
+	<div data-role="page" id="docListPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>document list</h1>
 			<a href="#dbListAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
 		</div>
 		<div data-role="content">
-			<ul id="docsListUL" data-role="listview" data-theme="g" data-filter="true">
+			<ul id="docsListUL" data-role="listview" data-inset="true" data-filter="true">
 				<li><a href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
 			</ul>
 		</div>
@@ -94,13 +94,13 @@
 		</fieldset>
 	</div><!-- /docListPg -->
 
-	<div data-role="page" id="docPg" data-add-back-btn="true">
+	<div data-role="page" id="docPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>view document</h1>
 			<a href="#docAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
 		</div>
 		<div data-role="content">
-			<ul data-role="listview" data-theme="g" data-filter="true">
+			<ul id="fieldListUL" data-role="listview" data-inset="true" data-filter="true">
 				<li><a href="#docPg">key here
 					<p class="ui-li-desc">value here</p>
 				</a></li>
@@ -108,7 +108,7 @@
 		</div>
 	</div><!-- /docPg -->
 
-	<div data-role="page" id="statusPg" data-add-back-btn="true">
+	<div data-role="page" id="statusPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>Status</h1>
 		</div>
@@ -117,7 +117,7 @@
 				<label for="statusPoll">Poll interval in seconds:</label>
 			 	<input type="range" name="statusPoll" id="statusPoll" value="5" min="0" max="30"  />
 			</div>
-			<ul id="statusListUL" data-role="listview" data-theme="g">
+			<ul id="statusListUL" data-role="listview" data-inset="true">
 				<li><h3>data.type</h3>
 					<p>data.task</p>
 					<p class="ui-li-aside">data.pid</p>
@@ -127,7 +127,7 @@
 		</div>
 	</div><!-- /statusPg -->
 	
-	<div data-role="page" id="createDbPg">
+	<div data-role="page" id="createDbPg" data-theme="e">
 		<div data-role="header">
 			<h1>Create New Database</h1>
 			<a href="#docAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
@@ -145,9 +145,31 @@
 	</div><!-- /statusPg -->
 	
 <script>
+function typeOf(value) {
+	//['object','array', 'string', 'number', 'boolean', 'null', 'undefined']
+    var s = typeof value;
+    if (s === 'object') {
+        if (value) {
+            if (value instanceof Array) {
+                s = 'array';
+            }
+        } else {
+            s = 'null';
+        }
+    }
+    return s;
+}
+
 $(document).ready(function() {
+	$(".fieldListA").live("click", function(){
+		//alert('clicked fieldListA id='+this.id)
+		//muton.docsStart=0;//reset start for new database
+		muton.populateFieldsList(this.id.substring(4));
+		$.mobile.changePage ($("#docPg"));
+	});
    $(".dbListA").live("click", function(){
-		//alert('clicked anchor id='+this.id)
+		//alert('clicked dbListA anchor id='+this.id)
+		muton.docsStart=0;//reset start for new database
 		muton.populateDocsList(this.id.substring(3));
 		$.mobile.changePage ($("#docListPg"));
 	});
@@ -156,11 +178,22 @@ $(document).ready(function() {
 
 	//previous and next for docList
 	$("#butDocListPrevious").live("click", function(){
-		alert('previous docList');
+		muton.docsDescending=true;
+		var x=muton.docsStart-muton.docsLimit;
+		if (x>=0) {
+			muton.docsStart=x;
+			muton.populateDocsList(muton.dbCurrent);
+		}
 	});
 
 	$("#butDocListNext").live("click", function(){
-		alert('next docList');
+		//alert('next docList');
+		muton.docsDescending=false;
+		var x=muton.docsStart+muton.docsLimit;
+		if (x<muton.docsMax) {
+			muton.docsStart=x;
+			muton.populateDocsList(muton.dbCurrent);
+		}
 	});
 
 	//previous and next for dbList
@@ -229,25 +262,13 @@ $(document).ready(function() {
 
 var muton={
 	docsLimit: 10, 
+	docsStart: 0, 
+	docsMax: 0, 
 	dbLimit: 10,
 	dbStart: 0,
 	dbMax: 0,
+	dbCurrent: "",
 	statusInterval: 5, //default to 5 seconds
-	populateDbList2 : function(){
-		var url='/_all_dbs';
-		$.getJSON(url, function(data) {
-			//alert('Got json of all databases='+data);
-			var x="";
-			muton.dbMax=data.length;
-			var y=data.slice(muton.dbStart,muton.dbStart+muton.dbLimit);
-			for (var i=0; i<y.length;i++){
-				x=x+'<li class="dbListA" id="db_'+y[i]+'" ><a href="#">'+y[i]+'</a>';
-				x=x+'<span class="ui-li-count">47</span></li>';
-			}
-			x=x+'<li data-role="list-divider" class="xof">Showing '+(muton.dbStart+1)+'-'+(parseInt(muton.dbStart)+i)+' of '+(parseInt(muton.dbMax))+' databases</li>';
-			$("#dbListUL").html(x).listview('refresh');
-		});
-	},
 	
 	populateDbList : function(){
 		var url='/_all_dbs';
@@ -279,24 +300,60 @@ var muton={
 	},
 	
 	populateDocsList : function(db){
+		muton.dbCurrent=db;
 		//get all documents for a database in this instance of couchdb, populate list, refresh list
 		//_all_docs?startkey="doc2"&limit=2  
-		//http://127.0.0.1:5984/nbi20100705/_all_docs?startkey=%22_design%2F%22&endkey=%22_design0%22&include_docs=true 
+		//_all_docs?startkey=%22_design%2F%22&endkey=%22_design0%22&include_docs=true 
 			//startkey=?
 			//limit will be 10, 25, 50, 100 - hardcoding 10 to start
+		/*
+		somedatabase/_all_docs?startkey="doc2"&limit=2&descending=true
+		
+		FIRST TIME
+		http://127.0.0.1:5984/muton/_all_docs?limit=11
+		NEXT:
+		/nbi20100705/_all_docs?descending=false&limit=11&startkey=%2214%22&startkey_docid=14&skip=1
+		/nbi20100705/_all_docs/?limit=11&skip=1&descending=false&startkey_docid=14A
+		
+		PREVIOUS:
+		/nbi20100705/_all_docs?descending=true&limit=11&startkey=%2214A%22&startkey_docid=14A&skip=1
+		
+		docsDescending: false,
+		
+		*/
 		//alert("@populateDocsList="+db);
-		var url="/"+db+"/_all_docs/?limit="+muton.docsLimit;
+		url="/"+db+"/_all_docs/?limit="+(muton.docsLimit);
+		if (muton.docsStart>0){
+			url=url+"&skip=1&descending="+muton.docsDescending
+			if (muton.descending){
+				url=url+"&startkey_docid="+muton.docIdStart;
+			}else{
+				url=url+"&startkey_docid="+muton.docIdEnd;
+			}
+		}
 		$.getJSON(url, function(data) {
 			//alert('Got json of all databases='+data);
-			var total_rows=data.total_rows;
+			muton.docsMax=data.total_rows;
 			var offset=data.offset;
 			var rows=data.rows;
 			var x="";
 			for (var i=0; i<rows.length;i++){
+				
+			/*		x=x+'"><a href="#docPg"><h3 class="ui-li-heading">'+y[i].key+'</h3>
+					<p class="ui-li-desc">'+y[i].value+'</p></a></li>';
+			
+			*/	
+				
+				
 				//<li><a id="db_name" href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
-				x=x+'<li><a id="doc_'+rows[i].id+'" href="#docPg">'+rows[i].id+'<p>'+rows[i].value.rev+'</p></a></li>';
+				x=x+'<li class="fieldListA" id="doc_'+rows[i].id
+				x=x+'"><a href="#docPg"><h3 class="ui-li-heading">'+rows[i].id+'</h3><p class="ui-li-desc">'+rows[i].value.rev+'</p></a></li>';
 			}
-			//test=x; //global for testing
+			x=x+'<li data-role="list-divider" class="xof">Showing '+(muton.docsStart+1)+'-'+(parseInt(muton.docsStart)+i)+' of '+(parseInt(muton.docsMax))+' documents</li>';
+			if (rows.length>0){
+				muton.docIdStart=rows[0].id;//needed for next and previous
+				muton.docIdEnd=rows[rows.length-1].id;
+			}
 			$("#docsListUL").html(x).listview('refresh');
 			//$.mobile.changePage ($("#docListPg"));
 			/*
@@ -307,16 +364,83 @@ var muton={
 			*/
 		});
 	},
-	populateStatus : function(){
+	
+	populateFieldsList : function(doc){
+		muton.docCurrent=doc;
+		//alert("@populateFieldsList="+doc);
+		url="/"+muton.dbCurrent+"/"+doc;
+		$.getJSON(url, function(data) {
+			//alert('Got json of all fields='+data);
+			/* convert to array and sort */
+			var y=[];//array
+			for (x in data){
+				z={}; //empty z
+				z["key"]=x;
+				z["value"] = data[x];
+				y.push(z);
+			}
+			y.sort(muton.sortObj);
+			var x="";
+			var v;
+			for (var i=0; i<y.length;i++){
+				v=muton.printValue(y[i].value);
+				x=x+'<li class="fieldDetailA" id="field_'+i
+				x=x+'"><a href="#docPg"><h3 class="ui-li-heading">'+y[i].key+'</h3><p class="ui-li-desc">'+v+'</p></a></li>';
+			}
+			$("#fieldListUL").html(x).listview('refresh');
+			/*
+			{
+			    "_id": "1",
+			    "_rev": "13-7faae3cad1ca1f8aad8573e0f988ad48",
+			    "type": "nbi",
+			    "isArchive": false,
+			    "nbiNo": "1",
+			...
+			*/
+		});
+	},
+	
+	
+	'sortObj': function (a,b){
+		//Compare "a" and "b" in some fashion, and return -1, 0, or 1
+		var keyA=a.key.toLowerCase(), keyB=b.key.toLowerCase()
+		if (keyA < keyB){ //sort string ascending
+			return -1
+		}
+		if (keyA > keyB){
+			return 1
+		}
+	 	return 0 //default return value (no sorting)
+	},
+	'printValue' : function(x){
+		//TODO look at value to see if //['object','array', 'string', 'number', 'boolean', 'null', 'undefined']
+		var y=typeOf(x);
+		switch(y){
+			case 'string':
+			  y='"'+x+'"';
+			  break;
+			case 'number':
+			  y=x;
+			  break;
+			case 'boolean':
+			  y=x;
+			  break;
+			default:
+			  //no change at this time, only send value to strings and numbers
+		}
+		return y
+	},
+	
+	'populateStatus' : function(){
 		var x="";
 		//$("#statusPoll").val(muton.statusInterval);
 		var url="/_active_tasks";
 		$.getJSON(url, function(data) {
 			//alert('Got json of all active tasks');
 			for (var i=0; i<data.length;i++){
-				x=x+'<li><h3>'+data[i].type+'</h3><p>'+data[i].task;
+				x=x+'<li><h3 class="ui-li-heading">'+data[i].type+'</h3><p class="ui-li-desc">'+data[i].task;
 				x=x+'</p><p class="ui-li-aside">'+data[i].pid;
-				x=x+'</p><p>'+data[i].status+'</p></li>';
+				x=x+'</p><p class="ui-li-desc">'+data[i].status+'</p></li>';
 			}
 			if (i==0){
 				x="<li>No tasks running</li>";
