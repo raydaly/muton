@@ -7,15 +7,18 @@
 	- Replicator
 	- Status
 	- Test Suite
-	dbList
+	dbListPg
 	- add database
-	- next, previous
+	- x next, previous
 	- change number of items on page
 	- number of documents in bubble with one call each to api (make advance option)
-	- showing 1 of x
-	docList
+	- x showing 1 of x
+	docListPg
 	- 
-	
+	fieldListPg
+	- don't allow edit of _fields like _id, _rev, etc.
+	editPg
+	-  save button working
 -->
 <html>
 <head>
@@ -42,7 +45,7 @@
 			<ul data-role="listview" data-inset="true">
 				<li><a href="#dbListPg">Overview</a></li>
 				<li><a href="#">Configuration</a></li>
-				<li><a href="#">Replicator</a></li>
+				<li><a href="#replicatePg">Replicator</a></li>
 				<li><a href="#statusPg">Status</a></li>
 				<li><a href="#">Test Suite</a></li>
 			</ul>
@@ -62,6 +65,29 @@
 		</div>
 	</div><!-- /about -->
 
+	<div data-role="page" id="rowDbPg" data-theme="e">
+		<div data-role="header">
+			<h1>Change # of Rows</h1>
+		</div>
+		<div data-role="content">
+			<div data-role="fieldcontain">
+			 	<fieldset data-role="controlgroup" data-role="controlgroup">
+					<input type="radio" name="rowsDb" id="rowsDb-5" class="rowsDbClass" value="5" />
+					<label for="rowsDb-5">5</label>
+					<input type="radio" name="rowsDb" id="rowsDb-10" class="rowsDbClass" value="10" />
+					<label for="rowsDb-10">10</label>
+					<input type="radio" name="rowsDb" id="rowsDb-25" class="rowsDbClass" value="25" />
+					<label for="rowsDb-25">25</label>
+					<input type="radio" name="rowsDb" id="rowsDb-50" class="rowsDbClass" value="50" />
+					<label for="rowsDb-50">50</label>
+					<input type="radio" name="rowsDb" id="rowsDb-100" class="rowsDbClass" value="100" />
+					<label for="rowsDb-100">100</label>
+			    </fieldset>
+			</div>
+			<a href="#dbListPg" data-rel="back"  data-role="button">Close</a>
+		</div>
+	</div><!-- /rowDbPg -->
+
 	<div data-role="page" id="dbListPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>database list</h1>
@@ -72,9 +98,10 @@
 				<li><a href="#docListPg">db1</a><span class="ui-li-count">47</span></li>
 			</ul>
 		</div>
-		<fieldset class="ui-grid-a">
+		<fieldset class="ui-grid-b">
 			<div class="ui-block-a"><a id="butDbListPrevious" href="#" data-role="button" data-icon="arrow-l">Previous</a></div>
-			<div class="ui-block-b"><a id="butDbListNext" href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
+			<div class="ui-block-b"><a href="#rowDbPg"  data-rel="dialog" data-role="button">Rows</a></div>
+			<div class="ui-block-c"><a id="butDbListNext" href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
 		</fieldset>
 	</div><!-- /dbListPg -->
 
@@ -144,6 +171,77 @@
 		<!--  butCreateDb$('#createDbPg').dialog('close') -->
 	</div><!-- /statusPg -->
 	
+	<div data-role="page" id="editPg" data-theme="e" data-close-btn-text="Cancel">
+		<div data-role="header">
+			<h1>Edit</h1>
+		</div>
+		<div data-role="content">
+			<div id="editErrorMsg"></div>
+			<div data-role="fieldcontain">
+				<label id="editKeyLabel" for="editKey" class="select">Key: </label>
+				<input type="text" name="editKey" id="editKey" value="value"  />
+			</div>
+		</div>
+		<a id="butEdit" href="#" data-role="button" data-icon="check">Save</a>
+		<a data-rel="back" href="#docPg" data-role="button" data-icon="delete">Cancel</a>
+	</div><!-- /statusPg -->
+	
+	<div data-role="page" id="replicatePg" data-theme="e" data-close-btn-text="Back">
+		<div data-role="header">
+			<h1>Replicate Changes</h1>
+		</div>
+		<div data-role="content">
+			<div id="replicateErrorMsg"></div>
+			<div data-role="fieldcontain">
+				<label for="fromSlider">From:</label>
+				<select name="fromSlider" id="fromSlider" data-role="slider">
+					<option value="true">Local</option>
+					<option value="false">Remote</option>
+				</select> 
+			</div>
+			<div data-role="fieldcontain" id="from>LocalDiv">
+				<label for="fromLocal" class="select">Local database:</label>
+				<select name="fromLocal" id="fromLocal" data-native-menu="false">
+					<option value="standard">Standard: 7 day</option>
+					<option value="rush">Rush: 3 days</option>
+					<option value="express">Express: next day</option>
+					<option value="overnight">Overnight</option>
+				</select>
+			</div>
+			<div data-role="fieldcontain" id="from>RemoteDiv">	
+				<label for="fromRemote">Remote database: </label>
+				<input type="text" name="fromRemote" id="fromRemote" value="http://"  />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="toSlider">To:</label>
+				<select name="toSlider" id="toSlider" data-role="slider">
+					<option value="true">Local</option>
+					<option value="false">Remote</option>
+				</select> 
+			</div>
+			<div data-role="fieldcontain" id="toLocalDiv">
+				<label for="toLocal" class="select">Local database:</label>
+				<select name="toLocal" id="toLocal" data-native-menu="false">
+					<option value="standard">Standard: 7 day</option>
+					<option value="rush">Rush: 3 days</option>
+					<option value="express">Express: next day</option>
+					<option value="overnight">Overnight</option>
+				</select>
+			</div>
+			<div data-role="fieldcontain" id="toRemoteDiv">
+				<label for="toRemote">Remote database: </label>
+				<input type="text" name="toRemote" id="toRemote" value="http://"  />
+			</div>
+		</div>
+				
+		<fieldset data-role="controlgroup">
+			<input type="checkbox" name="continuous" id="continuous" />
+			<label for="continuous">Continuous</label>
+		</fieldset>
+		<a id="butReplicator" href="#" data-role="button" data-icon="check">Replicate</a>
+	</div><!-- /replicatePg -->
+	
+	
 <script>
 function typeOf(value) {
 	//['object','array', 'string', 'number', 'boolean', 'null', 'undefined']
@@ -173,6 +271,18 @@ $(document).ready(function() {
 		muton.populateDocsList(this.id.substring(3));
 		$.mobile.changePage ($("#docListPg"));
 	});
+   $(".fieldDetailA").live("click", function(){
+		//alert('clicked fieldDetailA anchor id='+this.id)
+		//move key and value into editPg if string, number or bolean
+		
+		//TODO  make sure current record is in muton.field, push value into editPg
+		//TODO  make sure current record dirty flag, check dirty before leaving page
+		var x=this.id.substring(6);
+		$("#editKeyLabel").html(x);
+		$("#editKey").val(muton.recordCurrent[x]);
+		$.mobile.changePage ($("#editPg"));
+	});
+	
     muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
     //muton.populateDocsList("books");
 
@@ -214,6 +324,16 @@ $(document).ready(function() {
 		muton.populateDbList();
 	});
 
+	$("#butEdit").live("click", function(){
+		alert('@butEdit Save');
+		//dirty flag for record, update field in json, close dialog
+		muton.recordCurrentDirty=true;
+		muton.recordCurrent['a']='a';//TODO put in real values instead of "a"s
+		$.mobile.changePage ($("#docPg"));//close and return to previous page
+	});
+
+
+
 	//clear interval and set timeout for status page
 	//muton.statusInterval is interval in seconds
 	$('#statusPg').live('pagebeforeshow',function(event, ui){
@@ -234,6 +354,33 @@ $(document).ready(function() {
 			muton.status=setInterval(muton.populateStatus,1000*muton.statusInterval);
 		}
 		muton.populateStatus();
+	});	
+	
+	$('#replicatePg').live('pagebeforeshow',function(event){
+	  //run your own enhancement scripting here...
+		alert ("@pagebeforeshow for replicatePg");
+	  return false;
+	});
+	
+   $("#fromSlider").live("click", function(){
+		alert("@fromSlider click");
+	});
+	
+	//change number of rows in display
+	$('#rowDbPg').live('pageshow',function(event, ui){
+		//set radio to current muton.dbLimit
+		$(".rowsDbClass").val([muton.dbLimit]);
+		//alert('radio = '+ $('.rowsDbClass":checked').val());
+		$(".rowsDbClass").checkboxradio("refresh");
+	});
+
+	$('#rowDbPg').live('pagehide',function(event, ui){
+		//read value to radio, if new value redraw page, set muton.dbLimit
+		var x=$('.rowsDbClass":checked').val();
+		if (x!=muton.dbLimit){
+			muton.dbLimit=x;
+			muton.populateDbList();
+		}
 	});
 	
 	//action from dialog for creating new database
@@ -264,10 +411,12 @@ var muton={
 	docsLimit: 10, 
 	docsStart: 0, 
 	docsMax: 0, 
-	dbLimit: 10,
+	dbLimit: 5,
 	dbStart: 0,
 	dbMax: 0,
 	dbCurrent: "",
+	recordCurrent: {},
+	recordCurrentDirty: false,
 	statusInterval: 5, //default to 5 seconds
 	
 	populateDbList : function(){
@@ -372,6 +521,8 @@ var muton={
 		$.getJSON(url, function(data) {
 			//alert('Got json of all fields='+data);
 			/* convert to array and sort */
+			muton.recordCurrent=data; //keep this state for saving modified
+			muton.recordCurrentDirty=false;//reset dirty when new values
 			var y=[];//array
 			for (x in data){
 				z={}; //empty z
@@ -384,8 +535,14 @@ var muton={
 			var v;
 			for (var i=0; i<y.length;i++){
 				v=muton.printValue(y[i].value);
-				x=x+'<li class="fieldDetailA" id="field_'+i
-				x=x+'"><a href="#docPg"><h3 class="ui-li-heading">'+y[i].key+'</h3><p class="ui-li-desc">'+v+'</p></a></li>';
+				if (y[i].key.substring(0,1)=="_"){
+					//don't allow edit if system field like _id, _rev
+					x=x+'<li id="field_'+y[i].key;
+					x=x+'"><h3 class="ui-li-heading">'+y[i].key+'</h3><p class="ui-li-desc">'+v+'</p></li>';
+				} else{
+					x=x+'<li class="fieldDetailA" id="field_'+y[i].key;
+					x=x+'"><a href="#editPg" data-rel="dialog"><h3 class="ui-li-heading">'+y[i].key+'</h3><p class="ui-li-desc">'+v+'</p></a></li>';
+				}
 			}
 			$("#fieldListUL").html(x).listview('refresh');
 			/*
@@ -413,7 +570,8 @@ var muton={
 	 	return 0 //default return value (no sorting)
 	},
 	'printValue' : function(x){
-		//TODO look at value to see if //['object','array', 'string', 'number', 'boolean', 'null', 'undefined']
+		//look at value to see if //['object','array', 'string', 'number', 'boolean', 'null', 'undefined']
+		//return value if string, number or boolean - otherwise return typeOf string
 		var y=typeOf(x);
 		switch(y){
 			case 'string':
