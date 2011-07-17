@@ -8,13 +8,25 @@
 	- Status
 	- Test Suite
 	dbListPg
-	- add database
+	- x add database
+		TODO if error (not permissions, ask to log in)
 	- x next, previous
-	- change number of items on page
+	- x change number of items on page
 	- number of documents in bubble with one call each to api (make advance option)
+		- TODO bug with variable j
 	- x showing 1 of x
 	docListPg
-	- 
+		extra
+			new document
+			delete database
+			security
+			compact and cleanup
+			jump to document
+		view
+			all
+			design
+			views
+		next, previous, rows
 	fieldListPg
 	- don't allow edit of _fields like _id, _rev, etc.
 	editPg
@@ -26,10 +38,13 @@
 	<title>Muton for CouchDB</title>
 	<meta name="viewport" content="user-scalable=no, width=device-width" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<link href="http://code.jquery.com/mobile/latest/jquery.mobile.min.css" rel="stylesheet" type="text/css" />
+<!--	<link href="jquery.mobile-1.0a3.min.css" rel="stylesheet" type="text/css" />
+	<script src="jquery.min.js"></script>
+	<script src="jquery.mobile-1.0a3.min.js"></script>
+-->
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0b1/jquery.mobile-1.0b1.min.css" />
 	<script src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
-	<script src="http://code.jquery.com/mobile/latest/jquery.mobile.min.js"></script>
-	<style>
+	<script src="http://code.jquery.com/mobile/1.0b1/jquery.mobile-1.0b1.min.js"></script>	<style>
 		.xof {text-align: center;}
 		#statusErrorMsg {color: red;}
 	</style>
@@ -108,10 +123,21 @@
 	<div data-role="page" id="docListPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>document list</h1>
-			<a href="#dbListAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
+			<a href="#dbListMorePg" class="ui-btn-right" data-icon="arrow-r">More</a>
 		</div>
 		<div data-role="content">
-			<ul id="docsListUL" data-role="listview" data-inset="true" data-filter="true">
+			<div data-role="fieldcontain">
+				<label for="jumpDbInput">Jump to </label>
+				<input type="text" name="jumpDbInput" id="jumpDbInput" value="" placeholder="doc id"  />
+				<label for="docViewInput">View </label>
+				<select name="docViewInput" id="docViewInput" data-native-menu="false">
+					<option value="all">All Documents</option>
+					<option value="design">Design documents</option>
+					<option value="temporary">Temporary View</option>
+					<option value="runView">Run Views</option>
+				</select>
+			</div>
+			<ul id="docsListUL" data-role="listview" data-inset="true">
 				<li><a href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
 			</ul>
 		</div>
@@ -120,6 +146,21 @@
 			<div class="ui-block-b"><a id="butDocListNext"  href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
 		</fieldset>
 	</div><!-- /docListPg -->
+	
+	
+	<div data-role="page" id="dbListMorePg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1>More Actions</h1>
+		</div>
+		<div data-role="content">
+			<ul id="" data-role="listview" data-inset="true">
+				<li><a href="#butNewDocument">New Document</a></li>
+				<li><a href="#butDocListSecurity">Security</a></li>
+				<li><a href="#butCompact">Compact and Cleanup</a></li>
+				<li><a href="#butDeleteDatabse">Delete Database</a></li>
+			</ul>
+		</div>
+	</div><!-- /dbListMorePg -->	
 
 	<div data-role="page" id="docPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
@@ -157,7 +198,6 @@
 	<div data-role="page" id="createDbPg" data-theme="e">
 		<div data-role="header">
 			<h1>Create New Database</h1>
-			<a href="#docAdvancePg" class="ui-btn-right" data-icon="arrow-r">Advanced</a>
 		</div>
 		<div data-role="content">
 			Please enter the name of the database. Note that only lowercase characters (a-z), digits (0-9), or any of the characters _, $, (, ), +, -, and / are allowed.
@@ -311,8 +351,8 @@ $(document).ready(function() {
 		var x=muton.dbStart-muton.dbLimit;
 		if (x>=0) {
 			muton.dbStart=x;
+			muton.populateDbList();
 		}
-		muton.populateDbList();
 	});
 
 	$("#butDbListNext").live("click", function(){
@@ -320,8 +360,8 @@ $(document).ready(function() {
 		var x=muton.dbStart+muton.dbLimit;
 		if (x<muton.dbMax) {
 			muton.dbStart=x;
+			muton.populateDbList();
 		}
-		muton.populateDbList();
 	});
 
 	$("#butEdit").live("click", function(){
