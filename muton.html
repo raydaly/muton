@@ -146,21 +146,73 @@
 			<div class="ui-block-b"><a id="butDocListNext"  href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
 		</fieldset>
 	</div><!-- /docListPg -->
-	
-	
+		
 	<div data-role="page" id="dbListMorePg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>More Actions</h1>
 		</div>
 		<div data-role="content">
 			<ul id="" data-role="listview" data-inset="true">
-				<li><a href="#butNewDocument">New Document</a></li>
-				<li><a href="#butDocListSecurity">Security</a></li>
-				<li><a href="#butCompact">Compact and Cleanup</a></li>
-				<li><a href="#butDeleteDatabse">Delete Database</a></li>
+				<li id="#butNewDoc"><a href="#">New Document</a></li>
+				<li><a href="#dbSecurityPg" data-rel="dialog">Security</a></li>
+				<li><a href="#compactPg" data-rel="dialog">Compact and Cleanup</a></li>
+				<li><a href="#dbDeletePg" data-rel="dialog">Delete Database</a></li>
 			</ul>
 		</div>
 	</div><!-- /dbListMorePg -->	
+
+	<div data-role="page" id="newDocPg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1>New Document</h1>
+		</div>
+		<div data-role="content">
+			new doc page
+		</div>
+	</div><!-- /newDocPg -->	
+
+	<div data-role="page" id="dbSecurityPg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1>Database Security</h1>
+		</div>
+		<div data-role="content">
+			dbSecurityPg
+		</div>
+	</div><!-- /dbSecurityPg -->	
+
+	<div data-role="page" id="compactPg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1>Compact Database</h1>
+		</div>
+		<div data-role="content">
+		 <fieldset data-role="none">
+	         	<input type="radio" name="compact" id="compact-1" class="compactClass" value="database" checked="checked" />
+	         	<label for="compact-1">Compact Database</label>
+				Compacting a database removes deleted documents and previous revisions. It is an irreversible operation and may take a while to complete for large databases.
+
+	         	<input type="radio" name="compact" id="compact-2" class="compactClass" value="views"  />
+	         	<label for="compact-2">Compact Views</label>
+				View compaction will affect all views in this design document. This operation may take some time to complete. Your views will still operate normally during compaction.
+
+	         	<input type="radio" name="compact" id="compact-3" class="compactClass" value="cleanup"  />
+	         	<label for="compact-3">Cleanup Views</label>
+				Cleaning up views in a database removes old view files still stored on the filesystem. It is an irreversible operation.
+		</fieldset>
+			
+			<a id="butCompactDb" href="#" data-role="button" data-icon="check">Run</a>
+			<a data-rel="back" href="#dbListMorePg" data-role="button" data-icon="delete">Cancel</a>
+		</div>
+	</div><!-- /compactPg -->	
+
+	<div data-role="page" id="dbDeletePg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1>Delete Database</h1>
+		</div>
+		<div data-role="content">
+			Are you sure you want to delete this database? Note that this is an irreversible operation! 
+			<a id="butDeleteDb" href="#" data-role="button" data-icon="check">Delete Database</a>
+			<a data-rel="back" href="#dbListMorePg" data-role="button" data-icon="delete">Cancel</a>
+		</div>
+	</div><!-- /dbDeletePg -->	
 
 	<div data-role="page" id="docPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
@@ -372,7 +424,65 @@ $(document).ready(function() {
 		$.mobile.changePage ($("#docPg"));//close and return to previous page
 	});
 
+	$("#butCompactDb").live("click", function(){
+		//alert('@butCompactDb db='+muton.dbCurrent);
+		var url="/"+muton.dbCurrent+"/_compact";
+		var x=$('.compactClass":checked').val();
+		//values of database, views, cleanup
+		if (x=="views"){
+			alert("Compact Views requires focus on a view!");
+		}
+		if (x=="cleanup"){
+			//url view cleanup POST http://localhost:5984/dbname/_view_cleanup
+			url="/"+muton.dbCurrent+"/_view_cleanup";
+		}
+		if (x!="views"){
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: url,
+				success: function(){
+					//TODO repopulate dblist - maybe sould be on show event????
+				    muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
+				}
+			});
+		}
+		$('#compactPg').dialog('close');
+	});
+	
+	$("#butDeleteDb").live("click", function(){
+		//alert("@butDeleteDb");
+		var url="/"+muton.dbCurrent;
+		/*
+		$.ajax({
+			type: 'DELETE',
+			dataType: 'json',
+			url: url,
+			success: function(){
+				//TODO repopulate dblist - maybe sould be on show event????
+			}
+		});
+		*/
+		$('#dbDeletePg').dialog('close');
+	});
+	
+	
+	$("#butNewDoc").live("click", function(){
+		alert("@butNewDoc");
+		//get uuid
+		var url="/_uuids?count=1";
+		$.ajax({
+			type: 'get',
+			dataType: 'json',
+			url: url,
+			success: function(){
+				alert ("uuid="+data.uuids[0]);
+			}
+		});
 
+		$('#dbDeletePg').dialog('close');
+	});
+	
 
 	//clear interval and set timeout for status page
 	//muton.statusInterval is interval in seconds
@@ -402,7 +512,7 @@ $(document).ready(function() {
 	  return false;
 	});
 	
-   $("#fromSlider").live("click", function(){
+	$("#fromSlider").live("click", function(){
 		alert("@fromSlider click");
 	});
 	
@@ -437,9 +547,9 @@ $(document).ready(function() {
 				type: 'PUT',
 				url: url,
 				success: function(){
-					$('#createDbPg').dialog('close');
 					//TODO repopulate dblist - maybe sould be on show event????
 				    muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
+					$('#createDbPg').dialog('close');
 				}
 			});
 		}
