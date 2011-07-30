@@ -18,9 +18,9 @@
 	docListPg
 		extra
 			new document
-			delete database
+			x delete database
 			security
-			compact and cleanup
+			x compact and cleanup
 			jump to document
 		view
 			all
@@ -160,15 +160,6 @@
 			</ul>
 		</div>
 	</div><!-- /dbListMorePg -->	
-
-	<div data-role="page" id="newDocPg" data-add-back-btn="true" data-theme="e">
-		<div data-role="header">
-			<h1>New Document</h1>
-		</div>
-		<div data-role="content">
-			new doc page
-		</div>
-	</div><!-- /newDocPg -->	
 
 	<div data-role="page" id="dbSecurityPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
@@ -555,6 +546,31 @@ $(document).ready(function() {
 		}
 		$("#statusErrorMsg").html(errorMsg);	
 	});
+	
+	$("#docViewInput").live("change", function(){
+		var x=$("#docViewInput").val();
+		alert("change of docViewInput val="+x);
+		switch(x){
+			case 'all':
+				muton.docsListDesignOnly=false;
+				muton.populateDocsList(muton.dbCurrent);
+			  break;
+			case 'design':
+				muton.docsListDesignOnly=true;
+				muton.populateDocsList(muton.dbCurrent);
+				break;
+			case 'temporary':
+				//TODO
+				break;
+			case 'runView':
+				//TODO
+				break;
+			default:
+			  //no change at this time, only send value to strings and numbers
+		}		
+		
+	});
+	
 });
 
 var muton={
@@ -568,6 +584,7 @@ var muton={
 	recordCurrent: {},
 	recordCurrentDirty: false,
 	statusInterval: 5, //default to 5 seconds
+	docsListDesignOnly: false,
 	
 	populateDbList : function(){
 		var url='/_all_dbs';
@@ -622,6 +639,9 @@ var muton={
 		*/
 		//alert("@populateDocsList="+db);
 		url="/"+db+"/_all_docs/?limit="+(muton.docsLimit);
+		if (muton.docsListDesignOnly){
+			url=url+"&startkey=%22_design%2F%22&endkey=%22_design0%22";
+		}
 		if (muton.docsStart>0){
 			url=url+"&skip=1&descending="+muton.docsDescending
 			if (muton.descending){
