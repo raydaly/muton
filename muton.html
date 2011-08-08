@@ -1,12 +1,22 @@
 <!DOCTYPE html> 
 <!-- 
 	TODO to get first two screens like Futon
+	selectPg
+		automatically display if launched as attachment
+		couch parade from local
+		add new couch in local
+		delete couch from local
+		
 	startPg
 	- x Overview
 	- Configuration
+		get config
+		list sections
+		list options/value
+		edit value
 	- Replicator
 	- Status
-	- Test Suite
+	- n/a Test Suite
 	dbListPg
 	- x add database
 		TODO if error (not permissions, ask to log in)
@@ -21,14 +31,26 @@
 			x delete database
 			security
 			x compact and cleanup
-			jump to document
+			x jump to document
 		view
-			all
-			design
-			views
-		next, previous, rows
+			x all
+			x design
+			temp views
+			run view
+		x next, previous, rows
 	fieldListPg
-	- don't allow edit of _fields like _id, _rev, etc.
+		x don't allow edit of _fields like _id, _rev, etc.
+		x highlight value not key
+		edit
+		extra
+			save document
+			add field
+			upload attachment
+			delete document
+			change view/display/
+				key/value
+				value/key
+		
 	editPg
 	-  save button working
 -->
@@ -50,10 +72,26 @@
 	</style>
 </head>
 <body>
+	<div data-role="page" id="serverPg" data-theme="e">
+		<div data-role="header">
+			<h1>Muton</h1>
+			<a href="#aboutPg" class="ui-btn-right" data-icon="info">About</a>
+		</div>
+		<div data-role="content">
+			<ul data-role="listview" data-inset="true">
+				<li class="serverListA"  id="http://127.0.0.1:5984"><a href="#startPg">Local Host</a></li>
+			</ul>
+			<fieldset class="ui-grid-a">
+				<div class="ui-block-a"><a id="butAddServer" href="#" data-role="button" data-icon="add">Add</a></div>
+				<div class="ui-block-b"><a id="butDeleteServer"  href="#" data-role="button" data-icon="minus" data-iconpos="right">Delete</a></div>	   
+			</fieldset>
+			
+		</div>
+	</div><!-- /serverPg -->
+	
 	<div data-role="page" id="startPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>Muton for CouchDB</h1>
-			<a href="#aboutPg" class="ui-btn-right" data-icon="info">About</a>
 		</div>
 		<div data-role="content">
 			<p>This page will be about login in</p>
@@ -62,7 +100,7 @@
 				<li><a href="#">Configuration</a></li>
 				<li><a href="#replicatePg">Replicator</a></li>
 				<li><a href="#statusPg">Status</a></li>
-				<li><a href="#">Test Suite</a></li>
+				<!-- <li><a href="#">Test Suite</a></li> -->
 			</ul>
 			
 		</div>
@@ -127,8 +165,13 @@
 		</div>
 		<div data-role="content">
 			<div data-role="fieldcontain">
-				<label for="jumpDbInput">Jump to </label>
-				<input type="text" name="jumpDbInput" id="jumpDbInput" value="" placeholder="doc id"  />
+				<label for="jumpDocInput">Jump to </label>
+				<input type="search" name="jumpDocInput" id="jumpDocInput" value="" placeholder="doc id"  />
+			</div>
+			<ul id="docsListUL" data-role="listview" data-inset="true">
+				<li><a href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
+			</ul>
+			<div data-role="fieldcontain">
 				<label for="docViewInput">View </label>
 				<select name="docViewInput" id="docViewInput" data-native-menu="false">
 					<option value="all">All Documents</option>
@@ -137,15 +180,29 @@
 					<option value="runView">Run Views</option>
 				</select>
 			</div>
-			<ul id="docsListUL" data-role="listview" data-inset="true">
-				<li><a href="#docPg">doc id here</a><span class="ui-li-count">47</span></li>
-			</ul>
 		</div>
 		<fieldset class="ui-grid-a">
 			<div class="ui-block-a"><a id="butDocListPrevious" href="#" data-role="button" data-icon="arrow-l">Previous</a></div>
 			<div class="ui-block-b"><a id="butDocListNext"  href="#" data-role="button" data-icon="arrow-r" data-iconpos="right">Next</a></div>	   
 		</fieldset>
 	</div><!-- /docListPg -->
+	
+	<div data-role="page" id="runViewsPg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1>Run Views</h1>
+		</div>
+		<div data-role="content">
+			<ul id="runViewsUL" data-role="listview" data-inset="true">
+				<li data-role="list-divider">Design Doc 1</li>
+				<li><a href="#" id="" class="">View 1</a></li>
+				<li><a href="#" id="" class="">View 2</a></li>
+				<li data-role="list-divider">Design Doc 2</li>
+				<li><a href="#" id="" class="">View 1</a></li>
+				<li><a href="#" id="" class="">View 2</a></li>
+			</ul>
+		</div>
+	</div><!-- /runViewsPg -->	
+	
 		
 	<div data-role="page" id="dbListMorePg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
@@ -366,6 +423,25 @@ $(document).ready(function() {
 		$.mobile.changePage ($("#editPg"));
 	});
 	
+	
+   $(".viewsList").live("click", function(){
+		var x=this.id.split(',');
+		alert('clicked view id='+x);
+		var y=muton.views.rows[x[1]].doc.views[x[2]];
+		var z=muton.views.rows[x[1]].key;
+		//alert(y);
+		var url='/'+muton.dbCurrent+'/'+z+'/_view/'+x[2]+'?limit=11'
+		alert ('url='+url);
+		//muton.populateDocsList(db,view);
+		
+		
+		/nbi/_design/nbi/_view/list_docs?limit=11
+		/nbi/_design/nbi/_view/list_docs?limit=11
+		
+		
+		//$.mobile.changePage ($("#editPg"));
+	});
+		
     muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
     //muton.populateDocsList("books");
 
@@ -523,6 +599,15 @@ $(document).ready(function() {
 			muton.populateDbList();
 		}
 	});
+	$('#jumpDocInput').live('change',function(event,ui){
+		var x=$.trim($("#jumpDocInput").val());
+		if (x.length>0){
+			//alert('TODO accept input only on enter='+x);
+			muton.populateFieldsList(x);
+			$.mobile.changePage ($("#docPg"));
+			$("#jumpDocInput").val('');
+		}
+	});
 	
 	//action from dialog for creating new database
 	$("#butCreateDb").live("click", function(){
@@ -549,7 +634,7 @@ $(document).ready(function() {
 	
 	$("#docViewInput").live("change", function(){
 		var x=$("#docViewInput").val();
-		alert("change of docViewInput val="+x);
+		//alert("change of docViewInput val="+x);
 		switch(x){
 			case 'all':
 				muton.docsListDesignOnly=false;
@@ -563,7 +648,15 @@ $(document).ready(function() {
 				//TODO
 				break;
 			case 'runView':
-				//TODO
+				//TODO get views, populate runViewsPg, run view when clicked
+				$("#runViewsUL").html('');
+				var url="/"+muton.dbCurrent+"/_all_docs?startkey=%22_design%2F%22&endkey=%22_design0%22&include_docs=true";
+				$.getJSON(url, function(data) {
+					//alert('Got json of all views='+data);
+					muton.populateRunViews(data);
+					//alert('TODO switch to runViewsPg')
+				});
+				$.mobile.changePage ($("#runViewsPg"));
 				break;
 			default:
 			  //no change at this time, only send value to strings and numbers
@@ -572,6 +665,8 @@ $(document).ready(function() {
 	});
 	
 });
+
+
 
 var muton={
 	docsLimit: 10, 
@@ -585,6 +680,68 @@ var muton={
 	recordCurrentDirty: false,
 	statusInterval: 5, //default to 5 seconds
 	docsListDesignOnly: false,
+	views: {},
+	
+	populateRunViews: function(data){
+		/*
+		{
+		    "total_rows": 2,
+		    "offset": 0,
+		    "rows": [
+		        {
+		            "id": "_design/muton",
+		            "key": "_design/muton",
+		            "value": {
+		                "rev": "2-adebbb70c0879d62fa6d8197cc5b3e71"
+		            },
+		            "doc": {
+		                "_id": "_design/muton",
+		                "_rev": "2-adebbb70c0879d62fa6d8197cc5b3e71",
+		                "language": "javascript",
+		                "views": {
+		                    "test": {
+		                        "map": "function(doc) {\u000a  emit(null, doc);\u000a}"
+		                    },
+		                    "test2": {
+		                        "map": "function(doc) {\u000a  emit(null, doc);\u000a\u0009//test2\u000a}"
+		                    }
+		                }
+		            }
+		        }
+		    ]
+		}
+		<li data-role="list-divider">Design Doc 1</li>
+		<li><a href="#" id="" class="">View 1</a></li>
+		<li><a href="#" id="" class="">View 2</a></li>
+		
+		clicking on a view needs to get you the row and the name
+		data.row[i].doc.views.viewname has value of map
+		*/
+		var name;
+		var y;
+		var x="";
+		var z=[];
+		muton.views=data;
+		for (var i=0; i<data.rows.length; i++){
+			//for each design document insert the document name
+			y=data.rows[i].id.substring(8);
+			x=x+'<li data-role="list-divider">'+y+'</li>';
+			z=[];
+			name='';
+			for (name in data.rows[i].doc.views){
+				if (typeof data.rows[i].doc.views[name] !== 'function'){
+					//display name and hide z[name] which is map
+					z.push(name);
+				}
+			}
+			z.sort();
+			for (var ii=0; ii<z.length; ii++){
+					x=x+'<li><a href="#" id="views,'+i+','+z[ii]+'" class="viewsList">'+z[ii]+'</a></li>';
+			}
+		}
+		$("#runViewsUL").html(x);
+		$("#runViewsUL").listview('refresh');
+	},
 	
 	populateDbList : function(){
 		var url='/_all_dbs';
@@ -703,15 +860,16 @@ var muton={
 			y.sort(muton.sortObj);
 			var x="";
 			var v;
+			var u;  //y[i].key
 			for (var i=0; i<y.length;i++){
 				v=muton.printValue(y[i].value);
 				if (y[i].key.substring(0,1)=="_"){
 					//don't allow edit if system field like _id, _rev
 					x=x+'<li id="field_'+y[i].key;
-					x=x+'"><h3 class="ui-li-heading">'+y[i].key+'</h3><p class="ui-li-desc">'+v+'</p></li>';
+					x=x+'"><h3 class="ui-li-heading">'+v+'</h3><p class="ui-li-desc">'+y[i].key+'</p></li>';
 				} else{
 					x=x+'<li class="fieldDetailA" id="field_'+y[i].key;
-					x=x+'"><a href="#editPg" data-rel="dialog"><h3 class="ui-li-heading">'+y[i].key+'</h3><p class="ui-li-desc">'+v+'</p></a></li>';
+					x=x+'"><a href="#editPg" data-rel="dialog"><h3 class="ui-li-heading">'+v+'</h3><p class="ui-li-desc">'+y[i].key+'</p></a></li>';
 				}
 			}
 			$("#fieldListUL").html(x).listview('refresh');
