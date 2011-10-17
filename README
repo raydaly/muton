@@ -1,12 +1,16 @@
-NOTICE: I am a github novice, so help is welcomed.
+NOTICE: I am a github novice, so advice is welcomed.
 
-Intro
+Intro 
 
-Muton is for administrating Couchdb from a mobile device. If your Couchdb in on an Adroid device, the iPhone or a standard server, Muton gives you most of the functions of Futon, the standard Couchdb administrative console, on more convenient mobile, small screen format.
+Muton is for administrating Couchdb from a mobile device. If your Couchdb in on an Adroid device, iPhone or a standard server, Muton gives you most of the functions of Futon, the standard Couchdb administrative console, on more convenient mobile screen format.
 
-Muton differs from Futon. The Test Suite is not supported. The Configuration support will differ but it is not coded yet. Futon supplies more information on the screen in some cases, but I think Muton provides you with the essential information for any developer or administrator.  
+Muton differs from Futon. The Test Suite is not supported. Futon supplies more information on the screen in some cases, but I think Muton provides you with the essential information for any developer or administrator.  
 
-Muton has some addition. Both the database list and the document list page uses the Filter Items feature of jQuery mobile to allow you to quickly filter for what you want. Other additions will be added as more work is done.   
+Muton has some addition. Both the database list and the document list page uses the Filter Items feature of jQuery mobile to allow you to quickly filter for what you want. Other additions will be added as more work is done.
+
+Some work is still in progress and there are some bugs: for status, the moving the slider fires too many events, configuration does not yet save changes and database changes are buggy.  Design documents need more code and uploading attachments is not yet supported. There are other items for which there are TODOs in the code. 
+
+If you see something missing, please let me know.
 
 
 Installing
@@ -16,18 +20,17 @@ Muton consists of only one file: muton.html. It pulls the jQuery mobile files fr
 (step by step example coming)
 
 
-What's Working and Not
+TODOs (more in code)
 
-Muton consists of a variety of pages (or screens). Security is the next big task.
+Muton consists of a variety of pages (or screens). 
 
-Start Page: Working
-Status Page: Working
-Overview/Database List Page: Working except document count
-Document List Page: Needs pagination and advanced features like new, compact, delete, security and jumpto.
-View Page: Not even a placeholder yet
-View Document Page: Only a placeholder
+database: buggy saving changes; fix when object
+configuration: save edits
+replicator: more testing
+status: excessive calls when moving slider
+login: TODO failure of login
 
+other: TODO lots of code for design documents
+-- TODO uploading attachments 
 
-curl -X POST http://127.0.0.1:5984/baseball -H 'Content-Type: application/json' -d '{"FirstName":"Isabella"]}'
-curl -X PUT http://127.0.0.1:5984/baseball/again -d '{"title":"Test"}'
 
