@@ -28,4 +28,6 @@ View Page: Not even a placeholder yet
 View Document Page: Only a placeholder
 
 
+curl -X POST http://127.0.0.1:5984/baseball -H 'Content-Type: application/json' -d '{"FirstName":"Isabella"]}'
+curl -X PUT http://127.0.0.1:5984/baseball/again -d '{"title":"Test"}'
 

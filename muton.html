@@ -1,22 +1,38 @@
 <!DOCTYPE html> 
 <!-- 
-	TODO to get first two screens like Futon
-	selectPg
-		automatically display if launched as attachment
-		couch parade from local
-		add new couch in local
-		delete couch from local
-		
+ADD Login to top level screen and test if logged in everytime screen shown.
+
+BUGS
+	database list: next, next, next; change rows to 100, cannot get back to first database
+	popus blow the back stack
+	
+CHECK SESSION FIRST
+
+DONE Creating a database (PUT /database)
+DONE, BUT COMMENTED OUT Deleting a database (DELETE /database)
+* Creating a design document (PUT /database/_design/app)
+* Updating a design document (PUT /database/_design/app?rev=1-4E2)
+* Deleting a design document (DELETE /database/_design/app?rev=1-6A7)
+* Triggering compaction (POST /_compact)
+DONE Reading the task status list (GET /_active_tasks)
+* Restarting the server (POST /_restart)
+DONE Reading the active configuration (GET /_config)
+* Updating the active configuration (PUT /_config)
+)))))))))))))))) Admin must be logged in to do this operation.
+
+
+TODO to get first two screens like Futon
 	startPg
 	- x Overview
 	- Configuration
-		get config
-		list sections
-		list options/value
+		x get config
+		x list sections
+		x list options/value
 		edit value
 	- Replicator
 	- Status
 	- n/a Test Suite
+	- Login (todo: failure not handled correctly)
 	dbListPg
 	- x add database
 		TODO if error (not permissions, ask to log in)
@@ -41,7 +57,8 @@
 	fieldListPg
 		x don't allow edit of _fields like _id, _rev, etc.
 		x highlight value not key
-		edit
+		x edit
+		attachments object not displayed properly
 		extra
 			save document
 			add field
@@ -52,60 +69,71 @@
 				value/key
 		
 	editPg
-	-  save button working
+	-  x save button working
+		NOTE: save document still needs to work
 -->
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Muton for CouchDB</title>
-	<meta name="viewport" content="user-scalable=no, width=device-width" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-<!--	<link href="jquery.mobile-1.0a3.min.css" rel="stylesheet" type="text/css" />
-	<script src="jquery.min.js"></script>
-	<script src="jquery.mobile-1.0a3.min.js"></script>
+	<!-- 
+	<link href="http://code.jquery.com/mobile/latest/jquery.mobile.min.css" rel="stylesheet" type="text/css" />
+	<script src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
+	<script src="http://code.jquery.com/mobile/latest/jquery.mobile.min.js"></script>
 -->
-	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0b1/jquery.mobile-1.0b1.min.css" />
-	<script src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
-	<script src="http://code.jquery.com/mobile/1.0b1/jquery.mobile-1.0b1.min.js"></script>	<style>
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0rc1/jquery.mobile-1.0rc1.min.css" />
+	<script src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.0rc1/jquery.mobile-1.0rc1.min.js"></script>
+<!--
+	<link rel="stylesheet" href="jquery.mobile-1.0rc1.min.css" />
+	<script src="jquery-1.6.4.min.js"></script>
+	<script src="jquery.mobile-1.0rc1.min.js"></script>
+-->
+	
+	<style>
 		.xof {text-align: center;}
-		#statusErrorMsg {color: red;}
+		.errorMsg {color: red;}
+		#fromRemoteDiv {display: none;}
+		#toRemoteDiv {display: none;}
+		
 	</style>
 </head>
 <body>
-	<div data-role="page" id="serverPg" data-theme="e">
-		<div data-role="header">
-			<h1>Muton</h1>
-			<a href="#aboutPg" class="ui-btn-right" data-icon="info">About</a>
-		</div>
-		<div data-role="content">
-			<ul data-role="listview" data-inset="true">
-				<li class="serverListA"  id="http://127.0.0.1:5984"><a href="#startPg">Local Host</a></li>
-			</ul>
-			<fieldset class="ui-grid-a">
-				<div class="ui-block-a"><a id="butAddServer" href="#" data-role="button" data-icon="add">Add</a></div>
-				<div class="ui-block-b"><a id="butDeleteServer"  href="#" data-role="button" data-icon="minus" data-iconpos="right">Delete</a></div>	   
-			</fieldset>
-			
-		</div>
-	</div><!-- /serverPg -->
-	
+
 	<div data-role="page" id="startPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>Muton for CouchDB</h1>
 		</div>
 		<div data-role="content">
-			<p>This page will be about login in</p>
 			<ul data-role="listview" data-inset="true">
-				<li><a href="#dbListPg">Overview</a></li>
-				<li><a href="#">Configuration</a></li>
-				<li><a href="#replicatePg">Replicator</a></li>
+				<li><a id="startDbListPg" href="#dbListPg">Databases</a></li>
+				<li><a href="#configPg">Configuration</a></li>
+				<li><a id="startReplicatePg" href="#replicatePg">Replicator</a></li>
 				<li><a href="#statusPg">Status</a></li>
+				<li><a href="#loginPg" data-rel="dialog">Login</a></li>
 				<!-- <li><a href="#">Test Suite</a></li> -->
 			</ul>
-			
 		</div>
 	</div><!-- /startPg -->
 	
+	<div data-role="page" id="loginPg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1>Login</h1>
+		</div>
+		<div data-role="content">
+			<p>Login to CouchDB with your name and password.</p>
+			<div class="errorMsg" id="loginErrorMsg"></div>			<div data-role="fieldcontain">	
+				<label for="username">Username: </label>
+				<input type="text" name="username" id="username" />
+				<label for="password">Password: </label>
+				<input type="password" name="password" id="password" />
+				<a id="butLoginPg" href="#" data-role="button">Login</a>
+			</div>
+		</div>
+	</div><!-- /about -->
+
 	<div data-role="page" id="aboutPg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>About Muton</h1>
@@ -202,8 +230,7 @@
 			</ul>
 		</div>
 	</div><!-- /runViewsPg -->	
-	
-		
+
 	<div data-role="page" id="dbListMorePg" data-add-back-btn="true" data-theme="e">
 		<div data-role="header">
 			<h1>More Actions</h1>
@@ -285,12 +312,8 @@
 				<label for="statusPoll">Poll interval in seconds:</label>
 			 	<input type="range" name="statusPoll" id="statusPoll" value="5" min="0" max="30"  />
 			</div>
+			<div class="errorMsg" id="statusErrorMsg"></div>
 			<ul id="statusListUL" data-role="listview" data-inset="true">
-				<li><h3>data.type</h3>
-					<p>data.task</p>
-					<p class="ui-li-aside">data.pid</p>
-					<p>data.status</p>
-				</li>
 			</ul>
 		</div>
 	</div><!-- /statusPg -->
@@ -305,33 +328,35 @@
 				<label for="newDbName" class="select">Database name: </label>
 				<input type="text" name="newDbName" id="newDbName" value=""  />
 			</div>
-			<div id="statusErrorMsg"></div>
+			<div class="errorMsg" id="createDbErrorMsg"></div>
 		</div>
 		<a id="butCreateDb" href="#" data-role="button" data-icon="check">Create</a>
 		<!--  butCreateDb$('#createDbPg').dialog('close') -->
-	</div><!-- /statusPg -->
+	</div><!-- /createDbPg -->
 	
-	<div data-role="page" id="editPg" data-theme="e" data-close-btn-text="Cancel">
+	<div data-role="page" id="editPg" data-theme="e" data-add-back-btn="true" >
 		<div data-role="header">
 			<h1>Edit</h1>
 		</div>
 		<div data-role="content">
-			<div id="editErrorMsg"></div>
+			<div class="errorMsg" id="editErrorMsg"></div>
 			<div data-role="fieldcontain">
 				<label id="editKeyLabel" for="editKey" class="select">Key: </label>
 				<input type="text" name="editKey" id="editKey" value="value"  />
 			</div>
 		</div>
-		<a id="butEdit" href="#" data-role="button" data-icon="check">Save</a>
+		<a id="butEditSave" href="#" data-role="button" data-icon="check">Save</a>
 		<a data-rel="back" href="#docPg" data-role="button" data-icon="delete">Cancel</a>
-	</div><!-- /statusPg -->
-	
-	<div data-role="page" id="replicatePg" data-theme="e" data-close-btn-text="Back">
+	</div><!-- /editPg -->
+
+
+	<div data-role="page" id="replicatePg" data-theme="e" data-add-back-btn="true">
 		<div data-role="header">
 			<h1>Replicate Changes</h1>
 		</div>
 		<div data-role="content">
-			<div id="replicateErrorMsg"></div>
+			<div class="errorMsg" id="replicateErrorMsg"></div>
+			
 			<div data-role="fieldcontain">
 				<label for="fromSlider">From:</label>
 				<select name="fromSlider" id="fromSlider" data-role="slider">
@@ -339,7 +364,68 @@
 					<option value="false">Remote</option>
 				</select> 
 			</div>
-			<div data-role="fieldcontain" id="from>LocalDiv">
+			<div data-role="fieldcontain" id="fromLocalDiv">
+				<label for="fromLocal" class="select">Local database:</label>
+				<select name="fromLocal" id="fromLocal" data-native-menu="false">
+					<option value="standard"></option>
+				</select>
+			</div>
+			<div data-role="fieldcontain" id="fromRemoteDiv">	
+				<label for="fromRemote">Remote database: </label>
+				<input type="text" name="fromRemote" id="fromRemote" value="http://"  />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="toSlider">To:</label>
+				<select name="toSlider" id="toSlider" data-role="slider">
+					<option value="true">Local</option>
+					<option value="false">Remote</option>
+				</select> 
+			</div>
+			<div data-role="fieldcontain" id="toLocalDiv">
+				<label for="toLocal" class="select">Local database:</label>
+				<select name="toLocal" id="toLocal" data-native-menu="false">
+					<option value="standard"></option>
+				</select>
+			</div>
+			<div data-role="fieldcontain" id="toRemoteDiv">
+				<label for="toRemote">Remote database: </label>
+				<input type="text" name="toRemote" id="toRemote" value="http://"  />
+			</div>
+
+			<a id="butReverse" href="#" data-role="button" data-icon="refresh">Reverse</a>
+
+			<div data-role="fieldcontain">
+				<fieldset data-role="controlgroup">
+					<input type="checkbox" name="continuous" id="continuous" />
+					<label for="continuous">Continuous</label>
+				</fieldset>
+			</div>
+			<div data-role="fieldcontain">
+				<a id="butReplicator" href="#" data-role="button" data-icon="check">Replicate</a>
+			</div>
+		</div>
+		<div data-role="content">
+			<ul id="replicatorEventUL" data-role="listview" data-theme="a" data-inset="true">
+				<li data-role="list-divider">Events</li>
+				<li id="replicatorEvent"></li>
+			</ul>
+		</div>
+	</div><!-- /replicatePg -->
+	
+	<div data-role="page" id="replicatePg2" data-theme="e" data-close-btn-text="Back">
+		<div data-role="header">
+			<h1>Replicate Changes</h1>
+		</div>
+		<div data-role="content">
+			<div class="errorMsg" id="replicateErrorMsg"></div>
+			<div data-role="fieldcontain">
+				<label for="fromSlider">From:</label>
+				<select name="fromSlider" id="fromSlider" data-role="slider">
+					<option value="true">Local</option>
+					<option value="false">Remote</option>
+				</select> 
+			</div>
+			<div data-role="fieldcontain" id="fromLocalDiv">
 				<label for="fromLocal" class="select">Local database:</label>
 				<select name="fromLocal" id="fromLocal" data-native-menu="false">
 					<option value="standard">Standard: 7 day</option>
@@ -348,7 +434,7 @@
 					<option value="overnight">Overnight</option>
 				</select>
 			</div>
-			<div data-role="fieldcontain" id="from>RemoteDiv">	
+			<div data-role="fieldcontain" id="fromRemoteDiv">	
 				<label for="fromRemote">Remote database: </label>
 				<input type="text" name="fromRemote" id="fromRemote" value="http://"  />
 			</div>
@@ -372,17 +458,157 @@
 				<label for="toRemote">Remote database: </label>
 				<input type="text" name="toRemote" id="toRemote" value="http://"  />
 			</div>
-		</div>
+		
+		<!--
+			<p>From: (select local or remote)</p>
+			<div data-role="collapsible-set">
+				<div data-role="collapsible" data-collapsed="false" data-theme="a">
+					<h3>Local</h3>
+					<div data-role="fieldcontain" id="toLocalDiv3">
+						<label for="toLocal3" class="select">Local database:</label>
+						<select name="toLocal3" id="toLocal3" data-native-menu="false">
+							<option value="standard">Standard: 7 day</option>
+							<option value="rush">Rush: 3 days</option>
+							<option value="express">Express: next day</option>
+							<option value="overnight">Overnight</option>
+						</select>
+					</div>
+				</div>
+				<div data-role="collapsible" data-theme="a">
+					<h3>Remote</h3>
+					<div data-role="fieldcontain" id="toRemoteDiv3">
+						<label for="toRemote">Remote database: </label>
+						<input type="text" name="toRemote" id="toRemote" value="http://"  />
+					</div>
+				</div>
+			</div>
+			<p>To: (select local or remote)</p>
+			<div data-role="collapsible-set">
+				<div data-role="collapsible" data-collapsed="false" data-theme="b">
+					<h3>Local</h3>
+					<div data-role="fieldcontain" id="toLocalDiv2">
+						<label for="toLocal2" class="select">Local database:</label>
+						<select name="toLocal2" id="toLocal2" data-native-menu="false">
+							<option value="standard">Standard: 7 day</option>
+							<option value="rush">Rush: 3 days</option>
+							<option value="express">Express: next day</option>
+							<option value="overnight">Overnight</option>
+						</select>
+					</div>
+				</div>
+				<div data-role="collapsible" data-theme="b">
+					<h3>Remote</h3>
+					<div data-role="fieldcontain" id="toRemoteDiv2">
+						<label for="toRemote2">Remote database: </label>
+						<input type="text" name="toRemote2" id="toRemote2" value="http://"  />
+					</div>
+				</div>
+			</div>
+		-->
+			<a id="butReverse" href="#" data-role="button" data-icon="refresh">Reverse</a>
 				
-		<fieldset data-role="controlgroup">
-			<input type="checkbox" name="continuous" id="continuous" />
-			<label for="continuous">Continuous</label>
-		</fieldset>
-		<a id="butReplicator" href="#" data-role="button" data-icon="check">Replicate</a>
+			<div data-role="fieldcontain">
+				<fieldset data-role="controlgroup">
+					<input type="checkbox" name="continuous" id="continuous" />
+					<label for="continuous">Continuous</label>
+				</fieldset>
+			</div>
+			<a id="butReplicator" href="#" data-role="button" data-icon="check">Replicate</a>
+			
+		</div>
 	</div><!-- /replicatePg -->
 	
+<!-- sever pages not used due to same domain issue -->
 	
-<script>
+	<div data-role="page" id="serverPg" data-theme="e">
+		<div data-role="header">
+			<h1>Muton</h1>
+			<a href="#aboutPg" class="ui-btn-right" data-icon="info">About</a>
+		</div>
+		<div data-role="content">
+			<ul id="serverListUL" data-role="listview" data-inset="true">
+				<li class="serverListA"  id="http://127.0.0.1:5984"><a href="#startPg">Local Host</a></li>
+			</ul>
+			<fieldset class="ui-grid-a">
+				<div class="ui-block-a"><a href="#serverDeletePg" data-rel="dialog" data-role="button" data-icon="delete" data-iconpos="left">Delete</a></div>	   
+				<div class="ui-block-b"><a href="#serverNewPg"  data-rel="dialog" data-role="button" data-icon="add"  data-iconpos="right">New</a></div>
+			</fieldset>
+		</div>
+	</div><!-- /serverPg -->
+	
+	<div data-role="page" id="serverDeletePg" data-theme="e">
+		<div data-role="header">
+			<h1>Server Delete</h1>
+		</div>
+		<div data-role="content">
+			<div data-role="fieldcontain">
+				<p>Select servers to delete</p>
+			 	<fieldset id="serverDeleteGroup" data-role="controlgroup" data-role="controlgroup">
+					<input type="radio" name="name" id="name" value="0" />
+					<label for="name">name</label>
+			    </fieldset>
+				<a id="butDeleteServer" href="#" data-role="button" data-icon="delete" data-iconpos="right">Delete</a>	   
+			</div>
+		</div>
+	</div><!-- /serverDeletePg -->
+	
+	<div data-role="page" id="serverNewPg" data-theme="e">
+		<div data-role="header">
+			<h1>New Server</h1>
+		</div>
+		<div data-role="content">
+			<div data-role="fieldcontain">
+				<label for="serverName">Server Name:</label>
+				<input type="text" name="serverName" id="serverName" value=""  />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="serverAddress">Server Address:</label>
+				<input type="text" name="serverAddress" id="serverAddress" value="http://"  />
+			</div>
+			<p id="serverNewMsg" class="errorMsg">&nbsp;</p>
+			<a id="butTestServer" href="#" data-role="button" data-icon="refresh">Test</a>
+			<a id="butAddServer" href="#" data-role="button" data-icon="plus">Add Server</a>
+		</div>
+	</div><!-- /serverNewPg -->
+
+	<div data-role="page" id="configPg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1>Configuration</h1>
+		</div>
+		<span class="errorMsg" id="configStatusErrorMsg"></span>
+		<div data-role="content">
+			<ul id="ulConfig" data-role="listview" data-inset="true">
+			</ul>
+		</div>
+	</div><!-- /configPg -->
+	
+	<div data-role="page" id="configDetailPg" data-add-back-btn="true" data-theme="e">
+		<div data-role="header">
+			<h1 id="titleConfigDetail"></h1>
+		</div>
+		<span class="errorMsg" id="configDetailErrorMsg"></span>
+		<div data-role="content">
+			<ul id="ulConfigDetail" data-role="listview" data-inset="true">
+			</ul>
+		</div>
+	</div><!-- /configDetailPg -->
+	
+	<div data-role="page" id="configEditPg" data-theme="e" data-add-back-btn="true" >
+		<div data-role="header">
+			<h1>Edit</h1>
+		</div>
+		<div data-role="content">
+			<div id="configEditErrorMsg"></div>
+			<div data-role="fieldcontain">
+				<label id="configEditKeyLabel" for="configEditKey" class="select">Key: </label>
+				<input type="text" name="configEditKey" id="configEditKey" value="value"  />
+			</div>
+		</div>
+		<a id="butConfigEditSave" href="#" data-role="button" data-icon="check">Save</a>
+		<a data-rel="back" href="#docPg" data-role="button" data-icon="delete">Cancel</a>
+	</div><!-- /configEditPg -->
+	
+<script type="text/javascript">
 function typeOf(value) {
 	//['object','array', 'string', 'number', 'boolean', 'null', 'undefined']
     var s = typeof value;
@@ -402,7 +628,7 @@ $(document).ready(function() {
 	$(".fieldListA").live("click", function(){
 		//alert('clicked fieldListA id='+this.id)
 		//muton.docsStart=0;//reset start for new database
-		muton.populateFieldsList(this.id.substring(4));
+		muton.getDoc(this.id.substring(4));
 		$.mobile.changePage ($("#docPg"));
 	});
    $(".dbListA").live("click", function(){
@@ -433,17 +659,133 @@ $(document).ready(function() {
 		var url='/'+muton.dbCurrent+'/'+z+'/_view/'+x[2]+'?limit=11'
 		alert ('url='+url);
 		//muton.populateDocsList(db,view);
-		
-		
-		/nbi/_design/nbi/_view/list_docs?limit=11
-		/nbi/_design/nbi/_view/list_docs?limit=11
-		
-		
 		//$.mobile.changePage ($("#editPg"));
 	});
 		
-    muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
+    //muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
     //muton.populateDocsList("books");
+	$("#startDbListPg").live("click", function(){
+		muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
+	});
+
+	$("#startReplicatePg").live("click", function(){
+		muton.populateReplicationPg();
+		$("#replicateErrorMsg").html('');
+		$("#replicatorEvent").html('');
+		$("#replicatorEventUL").listview('refresh');	
+	});
+	
+	$("#butReverse").live("click", function(){
+		//alert('reverse me');
+		if (muton.isReverse){
+			muton.isReverse=false;
+			$("#fromSlider-label").html("From");
+			$("#toSlider-label").html("To");
+		}else{
+			muton.isReverse=true;
+			$("#fromSlider-label").html("To");
+			$("#toSlider-label").html("From");
+		}
+	});
+
+	$("#butReplicator").live("click", function(){
+		//alert('@replicate with continuous='+$("#continuous").val());
+		//must not be blank inputs
+		//read from
+		if ($("select#toSlider")[0].selectedIndex){
+			var to=$("#toRemote").val();
+		}else{
+			var to=$("#toLocal").val();
+		}
+		if ($("select#fromSlider")[0].selectedIndex){
+			var from=$("#fromRemote").val();
+		}else{
+			var from=$("#fromLocal").val();
+		}
+		//check isReverse to see direction
+		if (muton.isReverse){
+			var x=to;
+			to=from;
+			from=x;
+		}
+		//TODO add trim to and from
+		if (to.length==0 || from.length==0 || to==from){
+			$("#replicateErrorMsg").html("You must select two databases.");
+		}
+		//check continuous - cannot read checkbox, see forum
+		//alert("to="+to+" and from="+from);
+		//must be logged in
+		var url="/_session";
+		$.getJSON(url, function(data) {
+			if (muton.isSession(data)){
+				//alert('clicked anchor id='+this.id)
+				var errorMsg="";
+					var url="/_replicate";
+					var repo={};
+					repo.source=from;
+					repo.target=to;
+					repo.continuous=false;
+					if ($("#continuous").attr("checked")){
+						repo.continuous=true;
+					}
+						/*
+						POST /_replicate HTTP/1.1
+					{"source":"example-database",
+					"target":"http://admin:password@127.0.0.1:5984/example-database",
+					"continuous":true}
+						*/
+					$.ajax({
+						type: 'POST',
+						dataType: 'json',
+						data: repo,
+						url: url,
+						success: function(sdata){
+						    $("#replicatorEvent").html("<p>"+sdata+"</p>");	
+							$("#replicatorEventUL").listview('refresh');
+						}
+					});
+				$("#replicateErrorMsg").html(errorMsg);	
+			}else{
+				$("#replicateErrorMsg").html("Admin must be logged in to do this operation.");
+			}
+		});
+	});
+
+	
+	$("#butLoginPg").live("click", function(){
+		//try login in, if not display error
+		$("#loginErrorMsg").html("");
+		var x=$.trim($("#password").val());
+		var y=$.trim($("#username").val());
+		//if either empty, display error
+		if (x.length<1 || y.length<1){
+			$("#loginErrorMsg").html("Username and password required.");
+		}else{
+			var url="/_session";
+			var login={};
+			login.name=y;
+			login.password=x;
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				data: login,
+				url: url,
+				failure: function(ldata){
+					//Error logging in: Name or password is incorrect.
+					$("#loginErrorMsg").html("Error logging in: "+ldata.reason);
+				},
+				success: function(ldata){
+					if (ldata.ok){
+						//see if logged in
+						$('#loginPg').dialog('close');
+					}else{
+						//Error logging in: Name or password is incorrect.
+						$("#loginErrorMsg").html("Error logging in: "+ldata.reason);
+					}
+				}
+			});
+		}
+	});
 
 	//previous and next for docList
 	$("#butDocListPrevious").live("click", function(){
@@ -483,11 +825,13 @@ $(document).ready(function() {
 		}
 	});
 
-	$("#butEdit").live("click", function(){
-		alert('@butEdit Save');
+	$("#butEditSave").live("click", function(){
+		//alert('@butEdit Save');
 		//dirty flag for record, update field in json, close dialog
 		muton.recordCurrentDirty=true;
-		muton.recordCurrent['a']='a';//TODO put in real values instead of "a"s
+		var x=$("#editKeyLabel").html();
+		muton.recordCurrent[x]=$("#editKey").val();
+		muton.populateFieldsList(muton.recordCurrent);
 		$.mobile.changePage ($("#docPg"));//close and return to previous page
 	});
 
@@ -519,18 +863,25 @@ $(document).ready(function() {
 	
 	$("#butDeleteDb").live("click", function(){
 		//alert("@butDeleteDb");
-		var url="/"+muton.dbCurrent;
-		/*
-		$.ajax({
-			type: 'DELETE',
-			dataType: 'json',
-			url: url,
-			success: function(){
-				//TODO repopulate dblist - maybe sould be on show event????
+		var url="/_session";
+		$.getJSON(url, function(data) {
+			if (muton.isSession(data)){
+				var url="/"+muton.dbCurrent;
+				/*
+				$.ajax({
+					type: 'DELETE',
+					dataType: 'json',
+					url: url,
+					success: function(){
+						//TODO repopulate dblist - maybe sould be on show event????
+					}
+				});
+				*/
+				$('#dbDeletePg').dialog('close');
+			}else{
+				$("#createDbErrorMsg").html("Admin must be logged in to do this operation.");
 			}
 		});
-		*/
-		$('#dbDeletePg').dialog('close');
 	});
 	
 	
@@ -554,8 +905,16 @@ $(document).ready(function() {
 	//clear interval and set timeout for status page
 	//muton.statusInterval is interval in seconds
 	$('#statusPg').live('pagebeforeshow',function(event, ui){
-	  muton.populateStatus();
-	  muton.status=setInterval(muton.populateStatus,1000*muton.statusInterval);
+		var url="/_session";
+		$.getJSON(url, function(data) {
+			if (muton.isSession(data)){
+				$("#statusErrorMsg").html('');	
+				muton.populateStatus();
+				muton.status=setInterval(muton.populateStatus,1000*muton.statusInterval);
+			}else{
+				$("#statusErrorMsg").html("Admin must be logged in to do this operation.");
+			}
+		});
 	});
 
 	$('#statusPg').live('pagehide',function(event, ui){
@@ -572,15 +931,15 @@ $(document).ready(function() {
 		}
 		muton.populateStatus();
 	});	
-	
-	$('#replicatePg').live('pagebeforeshow',function(event){
-	  //run your own enhancement scripting here...
-		alert ("@pagebeforeshow for replicatePg");
-	  return false;
+		
+	$("#fromSlider").live("change", function(){
+		$("#fromLocalDiv").toggle();
+		$("#fromRemoteDiv").toggle();
 	});
 	
-	$("#fromSlider").live("click", function(){
-		alert("@fromSlider click");
+	$("#toSlider").live("change", function(){
+		$("#toLocalDiv").toggle();
+		$("#toRemoteDiv").toggle();
 	});
 	
 	//change number of rows in display
@@ -603,7 +962,7 @@ $(document).ready(function() {
 		var x=$.trim($("#jumpDocInput").val());
 		if (x.length>0){
 			//alert('TODO accept input only on enter='+x);
-			muton.populateFieldsList(x);
+			muton.getDoc(x);
 			$.mobile.changePage ($("#docPg"));
 			$("#jumpDocInput").val('');
 		}
@@ -611,26 +970,83 @@ $(document).ready(function() {
 	
 	//action from dialog for creating new database
 	$("#butCreateDb").live("click", function(){
-		//alert('clicked anchor id='+this.id)
-		var errorMsg="";
-		var x=$.trim($("#newDbName").val());
-		if (x.length==0){
-			errorMsg="Please enter a name.";
-		}else{
-			//TODO regex to all only legal names (a-z), digits (0-9), or  _, $, (, ), +, -, and /
-			var url="/"+x+"/";
-			$.ajax({
-				type: 'PUT',
-				url: url,
-				success: function(){
-					//TODO repopulate dblist - maybe sould be on show event????
-				    muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
-					$('#createDbPg').dialog('close');
+		var url="/_session";
+		$.getJSON(url, function(data) {
+			if (muton.isSession(data)){
+				//alert('clicked anchor id='+this.id)
+				var errorMsg="";
+				var x=$.trim($("#newDbName").val());
+				if (x.length==0){
+					errorMsg="Please enter a name.";
+				}else{
+					//TODO regex to all only legal names (a-z), digits (0-9), or  _, $, (, ), +, -, and /
+					var url="/"+x+"/";
+					$.ajax({
+						type: 'PUT',
+						url: url,
+						success: function(){
+							//TODO repopulate dblist - maybe sould be on show event????
+						    muton.populateDbList(muton.dbListStart,muton.dbListIncrement);
+							$('#createDbPg').dialog('close');
+						}
+					});
 				}
-			});
-		}
-		$("#statusErrorMsg").html(errorMsg);	
+				$("#createDbErrorMsg").html(errorMsg);	
+			}else{
+				$("#createDbErrorMsg").html("Admin must be logged in to do this operation.");
+			}
+		});
 	});
+	
+	$('#createDbPg').live('pagebeforeshow',function(event, ui){
+		$("#createDbErrorMsg").html('');
+	});
+	
+	$('#configPg').live('pagebeforeshow',function(event){
+		$("#configStatusErrorMsg").html('');
+		var url="/_session";
+		$.getJSON(url, function(data) {
+			if (muton.isSession(data)){
+				//populate config
+				var errorMsg="";
+				var url="/_config";
+				$.getJSON(url, function(data2) {
+					muton.config=data2;
+					var items=[];
+					for (var key in data2){
+						items.push(key);
+					}
+					items.sort();
+					var x="";
+					for (var i=0; i<items.length; i++){
+						x=x+'<li class="configList" id="config'+items[i]+'"><a href="#configDetailPg">'+items[i]+'</a></li>';
+					}
+					$("#ulConfig").html(x).listview('refresh');
+				});
+			}else{
+				$("#ulConfig").html('');
+				$("#configStatusErrorMsg").html("Admin must be logged in to do this operation.");
+			}
+		});
+	});
+	
+   $(".configList").live("click", function(){
+		var x=this.id.substring(6);
+		//alert("id="+x+" value="+muton.config[x]);
+		var items=[];
+		for (var key in muton.config[x]){
+			items.push(key)
+		}
+		items.sort();
+		var y='';
+		for (var i=0; i<items.length; i++){
+			y=y+'<li class="configDetailA" id="configField_'+items[i];
+			y=y+'"><a href="#configEditPg"><h3 class="ui-li-heading">'+muton.config[x][items[i]]+'</h3><p class="ui-li-desc">'+items[i]+'</p></a></li>';
+		}
+		$("#ulConfigDetail").html(y).listview('refresh');
+		$("#titleConfigDetail").html(x);
+	});
+	
 	
 	$("#docViewInput").live("change", function(){
 		var x=$("#docViewInput").val();
@@ -664,15 +1080,106 @@ $(document).ready(function() {
 		
 	});
 	
+	$("#butAddServer").live("click", function(){
+		//alert("clicked on butAddServer")
+		$("#serverNewMsg").html("");//clear message
+		//verify fields contain info, push to muton.servers, populate servers
+		//read muton.server and populate list
+		var x=$.trim($("#serverName").val());
+		var xx=$.trim($("#serverAddress").val());
+		$("#serverName").val(x);
+		$("#serverAddress").val(xx);
+		var y={};
+		//TODO make certain name is not a duplicate
+		if (x.length && xx.length){
+			y[x]=xx;
+			muton.servers.push(y);
+			muton.populateServersList();
+			$(".deleteServerCheckbox").checkboxradio(); 
+			//close dialog
+			$('#serverNewPg').dialog('close')
+		}else{
+			$("#serverNewMsg").html("Both fields are required");
+		}
+	});
+	
+	
+	$("#butTestServer").live("click", function(){
+		//alert("clicked on butTestServer")
+		$("#serverNewMsg").html("");//clear message
+		//verify fields contain info, push to muton.servers, populate servers
+		//read muton.server and populate list
+		var x=$.trim($("#serverName").val());
+		var xx=$.trim($("#serverAddress").val());
+		$("#serverName").val(x);
+		$("#serverAddress").val(xx);
+		var y={};
+		if (x.length && xx.length){
+			//{"couchdb":"Welcome","version":"1.0.2"}
+			$.getJSON(xx, function(data) {
+				//alert ("okay?="+data.couchdb);
+				if (data.couchdb=="Welcome"){
+					$("#serverNewMsg").html("This is a couchdb server");
+				}else{
+					$("#serverNewMsg").html("Not a couchdb server");
+				}
+				//alert('TODO switch to runViewsPg')
+			});
+			//alert ("url is="+xx);
+		}else{
+			$("#serverNewMsg").html("Both fields are required");
+		}
+	});
+	
+	$("#butDeleteServer").live("click", function(){
+		//alert("@butDeleteServer click")
+		var x=[];
+		//var y
+		//read the checkboxes and delete from muton.servers
+		if (confirm("Are you certain you want to delete?")){
+			for (var i=0; i<muton.servers.length;i++){
+				var name='';
+				for (name in muton.servers[i]){
+					if (typeof muton.servers[i][name] !== 'function'){
+						//display name and hide z[name] which is map
+						//y=muton.servers[i][name];
+						if ($("#"+name).is(":checked")){
+							x.push(i);
+						}
+					}
+				}
+			}
+			//now delete ever server in x
+			if(x.length){
+				for (var i=x.length; i>0; i--){
+					//delete from array
+					muton.servers.splice(i,1);
+				}
+				$('#serverDeletePg').dialog('close')
+			}else{
+				alert("You have not selected any servers to delete.");
+			}
+			
+		}
+	});
+	
+});
+
+$('#serverPg').live('pageshow',function(event, ui){
+	//read muton.server and populate list
+	muton.populateServersList();
+	$(".deleteServerCheckbox").checkboxradio(); 
 });
 
 
 
 var muton={
+	serverCurrent: "http://127.0.0.1:5984",
+	servers: [{"localhost": "http://127.0.0.1:5984"}],
 	docsLimit: 10, 
 	docsStart: 0, 
 	docsMax: 0, 
-	dbLimit: 5,
+	dbLimit: 100,
 	dbStart: 0,
 	dbMax: 0,
 	dbCurrent: "",
@@ -680,7 +1187,23 @@ var muton={
 	recordCurrentDirty: false,
 	statusInterval: 5, //default to 5 seconds
 	docsListDesignOnly: false,
+	isReverse: false,//replication interface
 	views: {},
+	
+	"isSession": function(data, failCallback){
+	     //data.userCtx.roles[0] - parse through
+	     //callback is optional function on fail
+	     for (var i=0; i<data.userCtx.roles.length; i++){
+	          if (data.userCtx.roles[i]=="_admin"){
+	               return true
+	          }
+	     }
+	     if (arguments[1]){
+	          return argument[1];//should return a true or false
+	     }else{
+	          return false;
+	     }
+	},
 	
 	populateRunViews: function(data){
 		/*
@@ -771,6 +1294,31 @@ var muton={
 			$("#dbListUL").listview('refresh');
 		});
 	},
+
+		populateReplicationPg : function(){
+			//populate drop downs with list of local dbs
+			var url='/_all_dbs';
+			$.getJSON(url, function(data) {
+				//alert('Got json of all databases='+data);
+				var x="";
+				muton.dbMax=data.length;
+				var y=data.slice().sort();
+				/*
+				<select name="fromLocal" id="fromLocal" data-native-menu="false">
+					<option value="standard">Standard: 7 day</option>
+					<option value="rush">Rush: 3 days</option>
+					<option value="express">Express: next day</option>
+					<option value="overnight">Overnight</option>
+				</select>
+				
+				*/
+				for (var i=0; i<y.length;i++){
+					x=x+'<option value="'+y[i]+'">'+y[i]+'</option>';
+				}
+				$("#fromLocal").html(x).selectmenu("refresh");
+				$("#toLocal").html(x).selectmenu("refresh");
+			});
+		},
 	
 	populateDocsList : function(db){
 		muton.dbCurrent=db;
@@ -841,7 +1389,47 @@ var muton={
 		});
 	},
 	
-	populateFieldsList : function(doc){
+	getDoc: function(docKey){
+		muton.docKeyCurrent=docKey;
+		//alert("@populateFieldsList="+doc);
+		url="/"+muton.dbCurrent+"/"+docKey;
+		$.getJSON(url, function(data) {
+			//alert('Got json of all fields='+data);
+			/* convert to array and sort */
+			muton.recordCurrent=data; //keep this state for saving modified
+			muton.recordCurrentDirty=false;//reset dirty when new values
+			muton.populateFieldsList(data);
+		});
+	},
+	
+	populateFieldsList: function(docValue){
+		var y=[];//array
+		var z, x;
+		for (x in docValue){
+			z={}; //empty z
+			z["key"]=x;
+			z["value"] = docValue[x];
+			y.push(z);
+		}
+		y.sort(muton.sortObj);
+		x="";
+		var v;
+		var u;  //y[i].key
+		for (var i=0; i<y.length;i++){
+			v=muton.printValue(y[i].value);
+			if (y[i].key.substring(0,1)=="_"){
+				//don't allow edit if system field like _id, _rev
+				x=x+'<li id="field_'+y[i].key;
+				x=x+'"><h3 class="ui-li-heading">'+v+'</h3><p class="ui-li-desc">'+y[i].key+'</p></li>';
+			} else{
+				x=x+'<li class="fieldDetailA" id="field_'+y[i].key;
+				x=x+'"><a href="#"><h3 class="ui-li-heading">'+v+'</h3><p class="ui-li-desc">'+y[i].key+'</p></a></li>';
+			}
+		}
+		$("#fieldListUL").html(x).listview('refresh');
+	},
+	
+	populateFieldsList2 : function(doc){
 		muton.docCurrent=doc;
 		//alert("@populateFieldsList="+doc);
 		url="/"+muton.dbCurrent+"/"+doc;
@@ -883,6 +1471,30 @@ var muton={
 			...
 			*/
 		});
+	},
+	
+	populateServersList : function(doc){
+		//using muton.servers populate serversPg
+		//servers: [{"localhost": "http://127.0.0.1:5984"}],
+		var x='';
+		var xx='';
+		var y;
+		var yy;
+		for (var i=0; i<muton.servers.length;i++){
+			for (name in muton.servers[i]){
+				if (typeof muton.servers[i][name] !== 'function'){
+					//display name and hide z[name] which is map
+					yy=name
+					y=muton.servers[i][name]
+				}
+			}
+			//<li class="serverListA"  id="http://127.0.0.1:5984"><a href="#startPg">localhost</a></li>
+			x=x+'<li class="serverListA" id="'+y+'"><a href="#startPg">'+yy+'</a></li>'
+			xx=xx+'<input type="checkbox" class="deleteServerCheckbox" name="'+yy+'" id="'+yy+'" value="'+i+'" /><label for="'+yy+'">'+yy+'</label>';
+		}
+		$("#serverListUL").html(x).listview('refresh')
+		$("#serverDeleteGroup").html(xx);
+		//$(".deleteServerCheckbox").checkboxradio("refresh"); 
 	},
 	
 	
