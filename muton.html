@@ -724,7 +724,7 @@ $(document).ready(function() {
 					var repo={};
 					repo.source=from;
 					repo.target=to;
-					repo.continuous=false;
+					//repo.continuous=false;
 					if ($("#continuous").attr("checked")){
 						repo.continuous=true;
 					}
@@ -737,7 +737,8 @@ $(document).ready(function() {
 					$.ajax({
 						type: 'POST',
 						dataType: 'json',
-						data: repo,
+						contentType: "application/json",
+						data: JSON.stringify(repo),
 						url: url,
 						success: function(sdata){
 						    $("#replicatorEvent").html("<p>"+sdata+"</p>");	
